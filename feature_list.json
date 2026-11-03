@@ -82,7 +82,7 @@
     {
       "id": "F014",
       "name": "Parsing helpers (text to Decimal, weeks to days)",
-      "status": "pending",
+      "status": "completed",
       "priority": "high"
     },
     {

@@ -13,13 +13,14 @@ Phase 3 — Core building (foundation done; rule engine is next)
 - [x] Multi-provider LLM layer (src/llm.py): anthropic, openai (also OpenAI-compatible endpoints), gemini, mock; one LLMError failure path; verified live through OpenRouter
 - [x] Config thresholds (src/config.py), all Decimal
 - [x] Extraction schema (src/schema.py), 26 evidence-wrapped fields
+- [x] Parsing helpers (src/parsing.py): only plain or properly grouped numbers are accepted (no guessed decimal commas, no negatives); weeks to days; 24 tests pass
+- [x] Rule engine boundary tests written first (tests/test_rules.py, includes all 10 packs against expected.json); red until src/rules.py exists
 
 ## In Progress
 - None
 
 ## Next Up
-- [ ] src/parsing.py (text to Decimal, weeks to days)
-- [ ] tests/test_rules.py (boundary table), then src/rules.py
+- [ ] src/rules.py: make tests/test_rules.py pass (do not edit the tests)
 
 ## Pending
 - [ ] PDF text extraction and Gate 1 (src/pdf_reader.py)
@@ -51,6 +52,8 @@ Phase 3 — Core building (foundation done; rule engine is next)
 ## Open Questions
 - Golden test: compare the exact list of rule IDs, or only the reject IDs when a pack is rejected (pack 10 expects R5 + H5)?
 - Which strong model to use for the first real golden run?
+- R4 reads "TIN or BIN is missing" as reject if EITHER is missing (test_rules.py assumes this; pack 08 misses both). Confirm and document in NOTE.md.
+- R3 and R4 reject on a null value, but a null can also mean the LLM missed it. Plan: Gate 2 in validators.py searches the PDF text (\bTIN\b, \bBIN\b, "penalt", "late delivery", "delay"); if the text mentions it but the value is null, treat it as an extraction failure (retry, then human check), not a reject. Packs 06 and 08 must still reject.
 
 ## Current Problems
 - None identified.
