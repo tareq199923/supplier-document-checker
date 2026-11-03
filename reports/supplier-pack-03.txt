@@ -1,0 +1,39 @@
+Karnaphuli Yarn Traders
+QUOTATION
+Quotation no.
+QT-2026-903
+Date
+2026-10-23
+To
+Aamar Garments Ltd (fictional)
+Reference
+PR-2026-114
+Item
+Description
+Qty
+Unit
+Unit price (BDT)
+Amount (BDT)
+C
+Polyester sewing thread, cone
+800
+cone
+229.00
+183,200.00
+Subtotal
+183,200.00
+VAT 15%
+27,480.00
+Total
+210,680.00
+Supplier TIN: 103458033391 BIN: 000370341-0101
+TERMS AND CONDITIONS
+1. Payment. 15% advance payable with the purchase order. Balance within 40 days of delivery.
+2. Delivery. Delivery within 20 days of PO.
+3. Delay. Delay in delivery will attract a penalty of 0.5% of order value per week.
+4. Validity. This quotation is valid for 30 days from the date above.
+5. Quality. Goods are supplied as per the buyer's approved sample. Defective goods will be replaced at the
+supplier's cost.
+6. Disputes. Any dispute will first be settled by discussion; failing that, through arbitration in Dhaka.
+For Karnaphuli Yarn Traders
+Authorised signatory (fictional sample document)

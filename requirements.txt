@@ -4,3 +4,6 @@ langgraph
 pytest
 streamlit
 python-dotenv
+anthropic
+openai
+google-genai

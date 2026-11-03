@@ -1,0 +1,38 @@
+Teesta Fabrics Ltd
+QUOTATION
+Quotation no.
+QT-2026-906
+Date
+2026-10-26
+To
+Aamar Garments Ltd (fictional)
+Reference
+PR-2026-114
+Item
+Description
+Qty
+Unit
+Unit price (BDT)
+Amount (BDT)
+A
+Cotton twill fabric, 280 gsm
+12,000
+metre
+465.00
+5,580,000.00
+Subtotal
+5,580,000.00
+VAT 15%
+837,000.00
+Total
+6,417,000.00
+Supplier TIN: 106458063391 BIN: 000670641-0101
+TERMS AND CONDITIONS
+1. Payment. 10% advance payable with the purchase order. Balance within 60 days of delivery.
+2. Delivery. Delivery within 27 days of PO.
+3. Validity. This quotation is valid for 30 days from the date above.
+4. Quality. Goods are supplied as per the buyer's approved sample. Defective goods will be replaced at the
+supplier's cost.
+5. Disputes. Any dispute will first be settled by discussion; failing that, through arbitration in Dhaka.
+For Teesta Fabrics Ltd
+Authorised signatory (fictional sample document)

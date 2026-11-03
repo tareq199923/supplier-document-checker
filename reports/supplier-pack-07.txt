@@ -1,0 +1,39 @@
+Rupsha Zipper Factory
+QUOTATION
+Quotation no.
+QT-2026-907
+Date
+2026-10-20
+To
+Aamar Garments Ltd (fictional)
+Reference
+PR-2026-114
+Item
+Description
+Qty
+Unit
+Unit price (BDT)
+Amount (BDT)
+B
+Metal zipper, 18 cm
+16,500
+piece
+35.00
+577,500.00
+Subtotal
+577,500.00
+VAT 15%
+86,625.00
+Total
+664,125.00
+Supplier TIN: 107458073391 BIN: 000770741-0101
+TERMS AND CONDITIONS
+1. Payment. No advance payment required. Payment within 45 days of delivery.
+2. Delivery. Delivery within 22 days of PO.
+3. Delay. Late delivery penalty: 0.5% of order value per week.
+4. Validity. This quotation is valid for 35 days from the date above.
+5. Quality. Goods are supplied as per the buyer's approved sample. Defective goods will be replaced at the
+supplier's cost.
+6. Disputes. Any dispute will first be settled by discussion; failing that, through arbitration in Dhaka.
+For Rupsha Zipper Factory
+Authorised signatory (fictional sample document)
