@@ -1,0 +1,72 @@
+
+{
+  "project": "Supplier Document Checker",
+  "features": [
+    {
+      "id": "F001",
+      "name": "Project setup and dependencies",
+      "status": "completed",
+      "priority": "high"
+    },
+    {
+      "id": "F002",
+      "name": "PDF text extraction",
+      "status": "pending",
+      "priority": "high"
+    },
+    {
+      "id": "F003",
+      "name": "Structured supplier data extraction using an LLM",
+      "status": "pending",
+      "priority": "high"
+    },
+    {
+      "id": "F004",
+      "name": "Evidence and schema validation",
+      "status": "pending",
+      "priority": "high"
+    },
+    {
+      "id": "F005",
+      "name": "Purchase request comparison",
+      "status": "pending",
+      "priority": "high"
+    },
+    {
+      "id": "F006",
+      "name": "Company rule engine",
+      "status": "pending",
+      "priority": "high"
+    },
+    {
+      "id": "F007",
+      "name": "Fixed LangGraph workflow",
+      "status": "pending",
+      "priority": "high"
+    },
+    {
+      "id": "F008",
+      "name": "Human review and error handling",
+      "status": "pending",
+      "priority": "high"
+    },
+    {
+      "id": "F009",
+      "name": "Supplier decision reports",
+      "status": "pending",
+      "priority": "high"
+    },
+    {
+      "id": "F010",
+      "name": "Streamlit user interface",
+      "status": "pending",
+      "priority": "medium"
+    },
+    {
+      "id": "F011",
+      "name": "Automated tests for all 10 sample packs",
+      "status": "pending",
+      "priority": "high"
+    }
+  ]
+}

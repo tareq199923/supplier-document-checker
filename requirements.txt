@@ -1,0 +1,6 @@
+pymupdf
+pydantic
+langgraph
+pytest
+streamlit
+python-dotenv

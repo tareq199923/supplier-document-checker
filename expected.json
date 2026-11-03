@@ -1,0 +1,55 @@
+
+{
+  "PR-2026-114": {
+    "01": {
+      "supplier": "Padma Textile Mills",
+      "decision": "Approve",
+      "rule_ids": []
+    },
+    "02": {
+      "supplier": "Jamuna Trims",
+      "decision": "Approve",
+      "rule_ids": []
+    },
+    "03": {
+      "supplier": "Karnaphuli Yarn",
+      "decision": "Reject",
+      "rule_ids": ["R1"]
+    },
+    "04": {
+      "supplier": "Surma Packaging",
+      "decision": "Needs a person to check",
+      "rule_ids": ["H1"]
+    },
+    "05": {
+      "supplier": "Meghna Carton",
+      "decision": "Reject",
+      "rule_ids": ["R2"]
+    },
+    "06": {
+      "supplier": "Teesta Fabrics",
+      "decision": "Reject",
+      "rule_ids": ["R3"]
+    },
+    "07": {
+      "supplier": "Rupsha Zipper",
+      "decision": "Needs a person to check",
+      "rule_ids": ["H2"]
+    },
+    "08": {
+      "supplier": "Bhairab Thread",
+      "decision": "Reject",
+      "rule_ids": ["R4", "N2"]
+    },
+    "09": {
+      "supplier": "Dhaleshwari Poly",
+      "decision": "Needs a person to check",
+      "rule_ids": ["H3", "H6"]
+    },
+    "10": {
+      "supplier": "Kushiyara Box",
+      "decision": "Reject",
+      "rule_ids": ["R5", "H5"]
+    }
+  }
+}
