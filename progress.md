@@ -2,7 +2,7 @@
 # Project Progress
 
 ## Current Phase
-Phase 2 — Project planning
+Phase 2 — Project planning (complete)
 
 ## Completed
 - [x] Created project directory
@@ -11,9 +11,10 @@ Phase 2 — Project planning
 - [x] Created initial project files
 - [x] Installed Python dependencies
 - [x] Define expected results for all 10 supplier documents
+- [x] Create project instructions (AGENTS.md)
 
 ## In Progress
-- [ ] Create project instructions
+- None
 
 ## Pending
 - [ ] PDF text extraction
