@@ -1,7 +1,7 @@
 # Project Progress
 
 ## Current Phase
-Phase 3 — Core building (foundation and rule engine done; PDF reader is next)
+Phase 3 — Core building (foundation, rule engine, PDF reader and Gate 1 done; evidence validation (Gate 2) is next)
 
 ## Completed
 - [x] Created project directory, Python 3.12 virtual environment and project folders
@@ -16,16 +16,16 @@ Phase 3 — Core building (foundation and rule engine done; PDF reader is next)
 - [x] Parsing helpers (src/parsing.py): only plain or properly grouped numbers are accepted (no guessed decimal commas, no negatives); weeks to days; 24 tests pass
 - [x] Rule engine boundary tests written first (tests/test_rules.py, includes all 10 packs against expected.json); red until src/rules.py exists
 - [x] Rule engine (src/rules.py): R1-R5, H1-H7, N1, N2, M as pure functions; all 10 packs match expected.json; RULE_FIELDS map plus schema test; 122 tests pass
+- [x] PDF reader and Gate 1 (src/pdf_reader.py): normalise_text, read_pdf returning PdfResult(ok, text, page_count, error), gate_text (None = pass, string = error, measured on normalised text); blank, whitespace-only, short, password-protected, missing and corrupt PDFs handled; PyMuPDF order kept; 70 new tests (tests/test_pdf_reader.py); 192 tests pass; extracted text of all 10 real PDFs inspected and looks correctly ordered
 
 ## In Progress
 - None
 
 ## Next Up
-- [ ] PDF text extraction and Gate 1 (src/pdf_reader.py)
+- [ ] Evidence validation gate, Gate 2 (src/validators.py)
 
 ## Pending
 - [ ] AI-based structured extraction (src/extractor.py)
-- [ ] Evidence validation gate (src/validators.py)
 - [ ] Purchase request comparison (src/compare.py)
 - [ ] Fixed workflow with one capped retry (src/graph.py)
 - [ ] Human review handling
