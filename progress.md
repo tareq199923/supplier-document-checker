@@ -1,7 +1,7 @@
 # Project Progress
 
 ## Current Phase
-Phase 3 — Core building (foundation done; rule engine is next)
+Phase 3 — Core building (foundation and rule engine done; PDF reader is next)
 
 ## Completed
 - [x] Created project directory, Python 3.12 virtual environment and project folders
@@ -15,19 +15,18 @@ Phase 3 — Core building (foundation done; rule engine is next)
 - [x] Extraction schema (src/schema.py), 26 evidence-wrapped fields
 - [x] Parsing helpers (src/parsing.py): only plain or properly grouped numbers are accepted (no guessed decimal commas, no negatives); weeks to days; 24 tests pass
 - [x] Rule engine boundary tests written first (tests/test_rules.py, includes all 10 packs against expected.json); red until src/rules.py exists
+- [x] Rule engine (src/rules.py): R1-R5, H1-H7, N1, N2, M as pure functions; all 10 packs match expected.json; RULE_FIELDS map plus schema test; 122 tests pass
 
 ## In Progress
 - None
 
 ## Next Up
-- [ ] src/rules.py: make tests/test_rules.py pass (do not edit the tests)
+- [ ] PDF text extraction and Gate 1 (src/pdf_reader.py)
 
 ## Pending
-- [ ] PDF text extraction and Gate 1 (src/pdf_reader.py)
 - [ ] AI-based structured extraction (src/extractor.py)
 - [ ] Evidence validation gate (src/validators.py)
 - [ ] Purchase request comparison (src/compare.py)
-- [ ] Company rule engine (src/rules.py)
 - [ ] Fixed workflow with one capped retry (src/graph.py)
 - [ ] Human review handling
 - [ ] Decision reports (src/report.py)
@@ -45,6 +44,7 @@ Phase 3 — Core building (foundation done; rule engine is next)
 - Extracted values are strings exactly as written; Python parses them to Decimal.
 - Gate 2 value-in-evidence check exemptions: price_includes_vat, and advance_pct when the value is "0".
 - Decision strings are exactly: "Approve", "Reject", "Needs a person to check".
+- Findings carry an optional evidence tuple; RULE_FIELDS in src/rules.py maps each rule to the schema fields the report will quote.
 - CSV is read with utf-8-sig (it has a BOM) and rows are matched by PR number + item letter.
 - Test features before marking them completed.
 - Use a free model for plumbing tests; run the first real golden test on a strong model and report both.
