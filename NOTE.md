@@ -106,7 +106,7 @@ All thresholds below are configured in `src/config.py`. Rule implementation is i
 | R4 | Supplier TIN or BIN is missing. |
 | R5 | Delivery is later than 45 days. |
 
-R4 currently rejects if either TIN or BIN is missing. This interpretation is implemented and covered by tests, but the business owner still needs to confirm that policy.
+R4 rejects if either TIN or BIN is missing (decided by Tareq, 2026-11-05). This is implemented and covered by tests; pack 08 is missing both.
 
 ### Human-review rules
 
@@ -146,7 +146,7 @@ These examples are useful regression cases. Do not change a threshold or expecte
 - All 10 sample packs have gold extraction data.
 - Expected decisions and rule IDs are in `expected.json`.
 - The gold fixture guard checks for all ten approved pack keys.
-- The latest recorded full-suite baseline on 2026-11-05 is **511 passed** (445 earlier tests plus 66 in `tests/test_compare.py`).
+- The latest recorded full-suite baseline on 2026-11-05 is **543 passed** (511 before F007, plus 32 in `tests/test_graph.py`).
 - Run tests from the project root with:
 
 ```powershell
@@ -159,13 +159,20 @@ A passing mock/gold test suite verifies deterministic code paths and fixture han
 
 According to `progress.md` and `feature_list.json` at the time this note was written:
 
-**Completed:** project setup, PDF reading/Gate 1, LLM provider layer, config/schema/parsing, rule engine, Gate 2, extractor, purchase-request comparison (`src/compare.py`, F005), and gold extraction coverage for all ten packs.
+**Completed:** project setup, PDF reading/Gate 1, LLM provider layer, config/schema/parsing, rule engine, Gate 2, extractor, purchase-request comparison (`src/compare.py`, F005), gold extraction coverage for all ten packs, and the fixed LangGraph workflow (`src/graph.py`, F007).
 
-**Next:** F007 fixed workflow (`src/graph.py`), starting with the Extraction-to-RuleInputs mapping and the failed-match rule.
+**Next:** F008 human-review handling and the error-result shape.
 
-**Still pending:** fixed workflow/retry, human-review handling, decision reports, Streamlit interface, full automated evaluation, README, and Loom demo.
+**Still pending:** human-review handling, decision reports, Streamlit interface, full automated evaluation, README, and Loom demo.
 
-The progress document contains an older engineering-decision sentence saying the LangGraph workflow is wired, while its current phase/feature tracker still marks F007 pending. Treat F007 as pending until the implementation and tests are checked and the tracker is reconciled. Do not claim the workflow is complete based only on that older sentence.
+The workflow tests in `tests/test_graph.py` stub the PDF reader, the LLM call and Gate 2, and feed the approved gold extractions through the real mapping, matching, rules and decision steps. They prove the wiring and all ten expected decisions and rule-ID lists. They are not a live run with real PDFs and a real model; that is the job of F011 and F015.
+
+### Workflow behaviour (`src/graph.py`)
+
+- Routing is fixed: read PDF and Gate 1, extract, Gate 2, then compare, evaluate and finalize. `MAX_ATTEMPTS = 2` means one first try plus at most one retry, and the retry sends only the Gate 2 failure messages. A second Gate 2 failure ends as `needs_review` with the decision "Needs a person to check".
+- Result status is one of `completed`, `needs_review` or `error`. An error (Gate 1, LLM failure, unusable CSV) has no `decision` key; an LLM failure on the retry attempt is also an error. The exact error-result shape is to be defined in F008.
+- **Failed purchase-request match:** the rules get no maximum price and no requested quantity, so R1, H1 and H2 cannot run. The workflow turns "Approve" into "Needs a person to check" and keeps any other Reject. A supplier whose price would have triggered R1 therefore goes to a person, not to Reject, when its item does not match. This is the safe direction.
+- **Unreadable values:** a value that is written in the document but cannot be read as a number, or a delivery unit other than day or week, is listed for rule M so a person sees it. It is never silently treated as absent. In particular an unreadable penalty rate does not trigger R3 ("no penalty clause"); R3 fires only when the penalty is truly null. Gate 2 normally stops these values earlier, so this is a second line of defence.
 
 ## 8. Key files
 
@@ -184,16 +191,18 @@ The progress document contains an older engineering-decision sentence saying the
 | `src/validators.py` | Gate 2 schema, evidence, and value validation. |
 | `src/rules.py` | Deterministic rule functions, findings, and decision selection. |
 | `src/compare.py` | Purchase-request CSV loader and strict item matcher (max price and requested quantity for the rules). |
+| `src/graph.py` | Fixed LangGraph workflow, Extraction-to-RuleInputs mapping, final decision with the failed-match rule. |
+| `tests/test_graph.py` | Workflow, mapping and failed-match tests (LLM and Gate 2 stubbed). |
 | `tests/gold_extractions.json` | Gold extraction fixtures for all ten sample packs. |
 
 ## 9. Open questions and known risks
 
-1. **R4 business policy:** confirm whether missing either TIN or BIN must always cause rejection. Current code and tests say yes.
+1. **R4 business policy (resolved 2026-11-05):** reject if either TIN or BIN is missing. No further action.
 2. **Evidence semantics:** Gate 2 does not fully establish that an evidence quote supports the intended field. A quote can exist in the PDF but be contextually wrong.
 3. **Live extraction quality:** one successful live plumbing check is not enough to establish accuracy or repeat-run consistency.
-4. **Workflow status:** reconcile the older LangGraph statement in `progress.md` with the F007 pending status before describing the workflow as implemented.
+4. **Workflow status (resolved 2026-11-05):** F007 is implemented in `src/graph.py` and covered by `tests/test_graph.py`. The older contradictory sentence in `progress.md` has been corrected.
 5. **Strict purchase-request matching:** the description must equal the CSV description (case and spaces ignored) and the unit must equal the CSV unit; anything else sends the case to a person, because a wrong match is worse than a human check. All ten gold packs match exactly today, but a real supplier who rewords an item will be flagged. The business owner may want a looser rule.
-6. **Extraction-to-rule-input mapping:** nothing yet converts an Extraction into RuleInputs (parse failures, `missing_fields`); this is the first job of F007 and needs its own tests.
+6. **Extraction-to-rule-input mapping (resolved 2026-11-05):** `map_extraction_to_rule_inputs` in `src/graph.py` is built and tested, including unreadable values and unknown delivery units. Open for F008: the exact shape of an error result (no `decision` key today).
 
 ## 10. Maintenance rules for this note
 
