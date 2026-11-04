@@ -802,3 +802,12 @@ def test_raw_csv_os_error_detail_is_not_exposed(monkeypatch, pdf_file):
     assert "Purchase request file could not be read." in result.error.message
     assert "Permission denied" not in repr(result)
     assert "C:\\\\private" not in repr(result)
+
+
+def test_missing_csv_path_is_not_exposed(pdf_file, tmp_path):
+    private_path = tmp_path / "private" / "requests.csv"
+    result = check(pdf_file, private_path)
+    assert result.status == "error"
+    assert result.error.code == "PURCHASE_REQUEST_UNUSABLE"
+    assert "Purchase request file was not found." in result.error.message
+    assert str(private_path) not in repr(result)

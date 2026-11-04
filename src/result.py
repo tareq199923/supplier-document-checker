@@ -157,9 +157,11 @@ def _error(
     message = _ERROR_MESSAGES[code]
     if code == PURCHASE_REQUEST_UNUSABLE and isinstance(detail, str):
         cleaned = " ".join(detail.split())[:_DETAIL_CHARS]
-        # compare.py includes raw OS exception text for read failures; never expose it.
+        # compare.py includes raw OS exception text and paths for file failures.
         if cleaned.startswith("Purchase request file could not be read:"):
             cleaned = "Purchase request file could not be read."
+        elif cleaned.startswith("Purchase request file not found:"):
+            cleaned = "Purchase request file was not found."
         if cleaned:
             message = f"{message} {cleaned}"
     return CheckResult(
