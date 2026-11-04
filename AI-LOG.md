@@ -15,7 +15,7 @@ caught them.
    to be redone. Lesson: confirm each action promptly and check the file afterwards.
 4. **A quoting error that looked like a code bug.** A one-line Python check failed because of
    PowerShell quotes, not because the code was wrong. Fixed by avoiding inner double quotes.
-5. **The agent's tool shell was not PowerShell.** A command with `;` failed with "path not found"
+5. **The agent's tool shell was not PowerShell.** A command with `; ` failed with "path not found"
    because the tool runs commands in `cmd.exe`. Fixed by using `cd /d ... && ...`. The test file
    itself was fine.
 6. **Planning work that was already done, and nearly overwriting real tests.** The agent wrote a
@@ -34,3 +34,23 @@ caught them.
 ## Prompts that worked
 
 (To be written by Tareq in his own words before submission: 3 to 4 prompts that gave good results.)
+
+## Development history
+
+### 2026-11-04 — Gold extraction coverage completed for all ten packs
+
+- Added gold extraction fixtures for Packs 03, 04, and 07 in `tests/gold_extractions.json`.
+- Updated the gold-fixture guard so it checks all ten packs instead of the earlier seven-pack count.
+- The project owner manually checked the new evidence quotes against the extracted PDF text and checked the arithmetic for the three added packs. This was an owner review, not an automated proof of extraction accuracy.
+- Boundary outcomes reviewed: Pack 03 is Reject (R1); Pack 04 needs a person to check (H1); Pack 07 needs a person to check (H2).
+- A stale test guard initially failed because it still expected seven packs. The fixture cases themselves passed; updating the guard to ten resolved the stale count.
+- Full test suite after the update: **445 passed**.
+- Changes were committed in `e212667` (gold fixtures and guard) and `33a91fd` (progress update).
+
+### 2026-11-04 — Technical foundation and AI history documented
+
+- Created `NOTE.md` as the stable technical reference for architecture, extraction/evidence contracts, business rules, test baseline, current feature status, and known risks.
+- Extended this file with the verified project milestones and current status.
+- Preserved all eight previously recorded AI mistakes above without removing or rewriting their substance.
+- The documentation review found two tracker items to reconcile later: the old LangGraph statement conflicts with F007 still being marked pending, and the old golden-test question is already resolved by tests comparing complete rule-ID lists. These were documented as status/maintenance notes; no other project files were changed.
+- No application source code, tests, fixtures, progress tracker, feature list, or README were changed as part of this documentation task.
