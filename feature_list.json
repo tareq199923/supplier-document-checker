@@ -16,7 +16,7 @@
     {
       "id": "F003",
       "name": "Structured supplier data extraction using an LLM",
-      "status": "pending",
+      "status": "completed",
       "priority": "high"
     },
     {

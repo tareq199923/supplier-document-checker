@@ -13,7 +13,7 @@ purchase-request.csv -> rule engine -> route decision -> report
 - This is a fixed workflow, NOT a free-running agent. Code decides the next step.
 - Python decides. The LLM ONLY extracts values and exact quotes from PDF text.
 - The LLM never calculates, never judges, never writes the explanation.
-- Do NOT add agents, RAG, memory, MCP, or extra frameworks.
+- Do NOT add agents, RAG, memory, MCP, or extra frameworks. The one allowed framework is LangGraph, and only to wire the fixed steps in src/graph.py (the task brief names it); every step stays a plain function.
 
 ## Hard rules
 1. Never invent values. If a value is not in the document, use null.

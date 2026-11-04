@@ -53,7 +53,7 @@ def _call_anthropic(system, user, model, timeout):
     client = anthropic.Anthropic(api_key=_key("ANTHROPIC_API_KEY"), timeout=timeout, max_retries=0)
     resp = client.messages.create(
         model=model,
-        max_tokens=2000,
+        max_tokens=4096,  # 26 fields with quotes need ~1.5k tokens; 2000 left too little room
         temperature=0,  # if a newer model rejects this parameter, remove it
         system=system,
         messages=[{"role": "user", "content": user}],
