@@ -1,7 +1,7 @@
 # Project Progress
 
 ## Current Phase
-Phase 3 — Core building (foundation, rule engine, PDF reader and Gate 1 done; evidence validation (Gate 2) is next)
+Phase 3 — Core building (foundation, rule engine, PDF reader, Gate 1 and Gate 2 done; AI-based structured extraction (F003) is next)
 
 ## Completed
 - [x] Created project directory, Python 3.12 virtual environment and project folders
@@ -17,15 +17,16 @@ Phase 3 — Core building (foundation, rule engine, PDF reader and Gate 1 done; 
 - [x] Rule engine boundary tests written first (tests/test_rules.py, includes all 10 packs against expected.json); red until src/rules.py exists
 - [x] Rule engine (src/rules.py): R1-R5, H1-H7, N1, N2, M as pure functions; all 10 packs match expected.json; RULE_FIELDS map plus schema test; 122 tests pass
 - [x] PDF reader and Gate 1 (src/pdf_reader.py): normalise_text, read_pdf returning PdfResult(ok, text, page_count, error), gate_text (None = pass, string = error, measured on normalised text); blank, whitespace-only, short, password-protected, missing and corrupt PDFs handled; PyMuPDF order kept; 70 new tests (tests/test_pdf_reader.py); 192 tests pass; extracted text of all 10 real PDFs inspected and looks correctly ordered
+- [x] Gate 2, evidence and schema validation (src/validators.py): validate_extraction(raw_text, pdf_text) returns Gate2Result(ok, extraction, failures). Checks, in a fixed order: JSON and schema (code fences accepted, all 26 fields present with value and evidence), evidence present, evidence verbatim in the normalised PDF text, value inside its own evidence (VAT-included and zero-advance wording checked by meaning), usable numbers and enumerated values, and a null cross-check (TIN, BIN, positive late-delivery penalty). All failures are collected, and a failed gate returns no extraction. Tests in tests/test_validators.py with tests/gold_extractions.json (packs 01, 02, 05, 06, 08, 09, 10)
+- [x] Gate 2 hardening after review, tests written first (26 new tests, red then green): a penalty rate after a comma ("Late delivery penalty, 0.5% of order value per week") is no longer missed; numbers in hyphenated ranges or labels ("30-90 days", "Net-30") are found while a real minus sign is still rejected; and the same hyphen rule now covers the zero-advance and penalty-rate patterns ("10-20% advance", "0.5-1% per week"), so a hyphenated positive advance can no longer pass as a zero advance; 391 tests pass
 
 ## In Progress
 - None
 
 ## Next Up
-- [ ] Evidence validation gate, Gate 2 (src/validators.py)
+- [ ] AI-based structured extraction (src/extractor.py)
 
 ## Pending
-- [ ] AI-based structured extraction (src/extractor.py)
 - [ ] Purchase request comparison (src/compare.py)
 - [ ] Fixed workflow with one capped retry (src/graph.py)
 - [ ] Human review handling
@@ -43,6 +44,9 @@ Phase 3 — Core building (foundation, rule engine, PDF reader and Gate 1 done; 
 - Never guess missing information. Send uncertain cases to human review.
 - Extracted values are strings exactly as written; Python parses them to Decimal.
 - Gate 2 value-in-evidence check exemptions: price_includes_vat, and advance_pct when the value is "0".
+- Gate 2 null cross-check: R3 and R4 reject on a null value, but a null can also mean the LLM missed it. If the PDF mentions TIN, BIN or a positive late-delivery penalty and the value is null, that is an extraction failure (retry, then human check), not a reject. Packs 06 and 08 still reject because their text has no such mention.
+- Gate 2 penalty detection never joins sentences. Inside one sentence, a clause that names the penalty but has no rate is checked together with the next clause; a negation ("No penalty applies") still wins.
+- Gate 2 number matching: a hyphen after a letter or digit is a hyphen ("30-90", "Net-30"); a hyphen after a space, a bracket or the start of the text is a minus sign and does not match. The same rule is used by value matching, the zero-advance patterns and the penalty-rate pattern.
 - Decision strings are exactly: "Approve", "Reject", "Needs a person to check".
 - Findings carry an optional evidence tuple; RULE_FIELDS in src/rules.py maps each rule to the schema fields the report will quote.
 - CSV is read with utf-8-sig (it has a BOM) and rows are matched by PR number + item letter.
@@ -53,7 +57,8 @@ Phase 3 — Core building (foundation, rule engine, PDF reader and Gate 1 done; 
 - Golden test: compare the exact list of rule IDs, or only the reject IDs when a pack is rejected (pack 10 expects R5 + H5)?
 - Which strong model to use for the first real golden run?
 - R4 reads "TIN or BIN is missing" as reject if EITHER is missing (test_rules.py assumes this; pack 08 misses both). Confirm and document in NOTE.md.
-- R3 and R4 reject on a null value, but a null can also mean the LLM missed it. Plan: Gate 2 in validators.py searches the PDF text (\bTIN\b, \bBIN\b, "penalt", "late delivery", "delay"); if the text mentions it but the value is null, treat it as an extraction failure (retry, then human check), not a reject. Packs 06 and 08 must still reject.
+- F007 is named "Fixed LangGraph workflow" and langgraph is in requirements.txt, but AGENTS.md says no extra frameworks. Decide before F007.
 
 ## Current Problems
-- None identified.
+- Gate 2 gold extractions exist for 7 of 10 packs; packs 03, 04 and 07 are not covered by the Gate 2 tests.
+- Gate 2 evidence only has to appear somewhere in the PDF, so a quote that is just a bare number can pass; it does not prove the quote is about the right field. Document this limit in NOTE.md.

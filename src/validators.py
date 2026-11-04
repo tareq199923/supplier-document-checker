@@ -58,13 +58,19 @@ _CODE_FENCE = re.compile(
 # A numeric value must be a complete token, not part of 130 or 472.00.
 # A trailing "." or "," is allowed when it is punctuation, but not when it
 # starts another number ("472.00.5", "12,000,5").
-_NUMERIC_BOUNDARY_BEFORE = r"(?<![\d.,+-])"
+# A "-" directly after a letter or digit is a hyphen ("30-90", "Net-30"), so the
+# number after it is found. A "-" after a space, a bracket or the start of the
+# text is a minus sign ("-30"), so the number after it is not the same value.
+_NUMERIC_BOUNDARY_BEFORE = r"(?<![\d.,+])(?<!(?<!\w)-)"
 _NUMERIC_BOUNDARY_AFTER = r"(?!\d|[.,]\d)"
 
 _TIN_WORD = re.compile(r"\bTIN\b", re.IGNORECASE)
 _BIN_WORD = re.compile(r"\bBIN\b", re.IGNORECASE)
 
 # ---- zero advance -----------------------------------------------------------
+# Number boundaries in the advance and penalty patterns use the same sign rule
+# as _NUMERIC_BOUNDARY_BEFORE: "-" after a letter or digit is a hyphen, not a
+# minus sign. Keep them in sync when changing one.
 _ADVANCE_NEGATED_PATTERNS = (
     re.compile(
         r"\b(?:no|not|none|never|without)\b[^.;]*?\badvance\b",
@@ -78,14 +84,14 @@ _ADVANCE_NEGATED_PATTERNS = (
 )
 _POSITIVE_ADVANCE_PATTERNS = (
     re.compile(
-        r"(?<![\d.,+-])"
+        r"(?<![\d.,+])(?<!(?<!\w)-)"
         r"(?:[1-9]\d*(?:\.\d+)?|0*\.\d*[1-9]\d*)"
         r"\s*%\s*(?:of\s+)?(?:the\s+)?(?:total\s+)?(?:price\s+)?advance\b",
         re.IGNORECASE,
     ),
     re.compile(
         r"\badvance\b[^.;]*?"
-        r"(?<![\d.,+-])"
+        r"(?<![\d.,+])(?<!(?<!\w)-)"
         r"(?:[1-9]\d*(?:\.\d+)?|0*\.\d*[1-9]\d*)\s*%",
         re.IGNORECASE,
     ),
@@ -112,12 +118,12 @@ _ZERO_ADVANCE_PATTERNS = (
         re.IGNORECASE,
     ),
     re.compile(
-        r"(?<![\d.,+-])0(?:\.0+)?\s*%\s*"
+        r"(?<![\d.,+])(?<!(?<!\w)-)0(?:\.0+)?\s*%\s*"
         r"(?:of\s+)?(?:the\s+)?(?:total\s+)?(?:price\s+)?advance\b",
         re.IGNORECASE,
     ),
     re.compile(
-        r"\badvance\b[^.;]*?(?<![\d.,+-])0(?:\.0+)?\s*%",
+        r"\badvance\b[^.;]*?(?<![\d.,+])(?<!(?<!\w)-)0(?:\.0+)?\s*%",
         re.IGNORECASE,
     ),
 )
@@ -194,11 +200,13 @@ _CLAUSE_BOUNDARY = re.compile(
     r"instead|unless)\b\s+",
     re.IGNORECASE,
 )
+# Sentences are never joined when looking for a penalty rate.
+_SENTENCE_BOUNDARY = re.compile(r"(?<=[.!?])\s+|\s*;\s*")
 _PENALTY_KEYWORD = re.compile(
     r"\b(?:penalt(?:y|ies)|late[\s-]+delivery|delay(?:ed|s)?)\b",
     re.IGNORECASE,
 )
-_PERCENT = re.compile(r"(?<![\d.,+-])(\d+(?:\.\d+)?)\s*%")
+_PERCENT = re.compile(r"(?<![\d.,+])(?<!(?<!\w)-)(\d+(?:\.\d+)?)\s*%")
 _NEGATED_PENALTY_PATTERNS = (
     re.compile(
         r"\b(?:no|not|none|never|without)\b[^.;]*?"
@@ -560,16 +568,34 @@ def _penalty_is_negated(clause: str) -> bool:
     )
 
 
+def _is_positive_penalty_clause(clause: str) -> bool:
+    """A penalty keyword, a rate above zero, and no negation."""
+    if not _PENALTY_KEYWORD.search(clause):
+        return False
+    percentages = _PERCENT.findall(clause)
+    if not any(Decimal(value) > _ZERO for value in percentages):
+        return False
+    return not _penalty_is_negated(clause)
+
+
 def _positive_penalty_details(text: str) -> bool:
-    for clause in _split_clauses(text):
-        if not _PENALTY_KEYWORD.search(clause):
-            continue
-        percentages = _PERCENT.findall(clause)
-        if not percentages:
-            continue
-        if not any(Decimal(value) > _ZERO for value in percentages):
-            continue
-        if _penalty_is_negated(clause):
-            continue
-        return True
+    # Sentences are never joined. Inside one sentence, a clause that names the
+    # penalty but has no rate is also checked together with the clause after
+    # it, so "Late delivery penalty, 0.5% of order value per week" is not split
+    # between the keyword and the rate. A negation still applies to the joined
+    # text, so "No penalty applies, 5% VAT is extra" stays negative.
+    for sentence in _SENTENCE_BOUNDARY.split(text):
+        clauses = _split_clauses(sentence)
+        for index, clause in enumerate(clauses):
+            if _is_positive_penalty_clause(clause):
+                return True
+            if (
+                _PENALTY_KEYWORD.search(clause)
+                and not _PERCENT.search(clause)
+                and index + 1 < len(clauses)
+                and _is_positive_penalty_clause(
+                    f"{clause}, {clauses[index + 1]}"
+                )
+            ):
+                return True
     return False

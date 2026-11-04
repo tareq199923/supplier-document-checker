@@ -834,3 +834,131 @@ def test_explicit_nested_nulls_still_pass():
 )
 def test_positive_penalty_after_negative_statement_is_detected(text):
     assert _positive_penalty_details(text) is True
+
+
+# ---------- regression: penalty rate after a comma ---------------------------
+# "Late delivery penalty, 0.5% of order value per week" must not be split so that
+# the keyword and the percentage land in different clauses. A missed penalty
+# would become a false Reject (R3) instead of a retry and a human check.
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Late delivery penalty, 0.5% of order value per week.",
+        "Penalty for late delivery, 1% of the order value per week of delay.",
+        "Delay penalty, 0.5% per week.",
+        (
+            "Delivery is within 24 days. "
+            "Late delivery penalty, 0.5% of order value per week."
+        ),
+        "No penalty applies, but late delivery penalty, 0.5% of order value per week.",
+    ],
+)
+def test_penalty_percentage_after_a_comma_is_detected(text):
+    assert _positive_penalty_details(text) is True
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "No late delivery penalty, 1% is not charged.",
+        "No penalty applies, 5% VAT is extra.",
+        "Late delivery penalty. 5% VAT is extra.",
+        "Late delivery penalty terms apply, see clause 5.",
+    ],
+)
+def test_comma_joined_text_without_a_positive_penalty_rate_is_not_positive(text):
+    assert _positive_penalty_details(text) is False
+
+
+def test_penalty_after_a_comma_but_null_percentage_fails_the_cross_check():
+    failures = check_null_crosscheck(
+        extraction(),
+        "Late delivery penalty, 0.5% of order value per week.",
+    )
+    assert has_failure(failures, "penalty")
+
+
+# ---------- regression: hyphenated ranges and labels -------------------------
+# A hyphen between digits or letters ("30-90", "Net-30") is not a minus sign.
+
+@pytest.mark.parametrize(
+    "field, value, evidence",
+    [
+        ("balance_days_min", "30", "Balance payable within 30-90 days of delivery."),
+        ("balance_days_max", "90", "Balance payable within 30-90 days of delivery."),
+        ("balance_days_max", "45", "Balance payable within 30 - 45 days of delivery."),
+        ("balance_days_min", "30", "Payment terms: Net-30 days."),
+    ],
+)
+def test_numbers_in_hyphenated_ranges_and_labels_are_found(
+    field, value, evidence
+):
+    ex = extraction(**{field: ev(value, evidence)})
+    assert check_value_in_evidence(ex) == ()
+
+
+@pytest.mark.parametrize(
+    "evidence",
+    [
+        "Adjustment -30 units.",
+        "Adjustment (-30) units.",
+        "-30 units.",
+    ],
+)
+def test_a_minus_sign_before_the_number_is_still_rejected(evidence):
+    ex = extraction(quantity=ev("30", evidence))
+    assert has_failure(check_value_in_evidence(ex), "quantity")
+
+
+# ---------- regression: hyphenated ranges in advance and penalty text --------
+# The zero-advance and penalty checks follow the same hyphen rule as number
+# matching: "10-20%" is a range, not "10" followed by a minus sign.
+
+@pytest.mark.parametrize(
+    "evidence",
+    [
+        "No advance payment required. 10-20% advance for new suppliers.",
+        "No advance payment required. Advance-20% for new suppliers.",
+        "No advance payment required. Advance payment 10-20% for new suppliers.",
+    ],
+)
+def test_zero_advance_with_a_hyphenated_positive_advance_fails(evidence):
+    ex = extraction(advance_pct=ev("0", evidence))
+    assert has_failure(check_value_in_evidence(ex), "advance_pct")
+
+
+@pytest.mark.parametrize(
+    "evidence",
+    [
+        "No advance payment required - 100% payable within 30-45 days of delivery.",
+        "0% advance payment - balance within 30-45 days of delivery.",
+    ],
+)
+def test_zero_advance_with_hyphens_elsewhere_still_passes(evidence):
+    ex = extraction(advance_pct=ev("0", evidence))
+    assert check_value_in_evidence(ex) == ()
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Late delivery penalty: 0.5-1% of order value per week.",
+        "Late delivery penalty 1-2% per week.",
+    ],
+)
+def test_penalty_rate_range_with_a_hyphen_is_detected(text):
+    assert _positive_penalty_details(text) is True
+
+
+def test_negated_penalty_with_a_hyphenated_rate_is_not_positive():
+    text = "No late delivery penalty of 1-2% applies."
+    assert _positive_penalty_details(text) is False
+
+
+def test_penalty_range_but_null_percentage_fails_the_cross_check():
+    failures = check_null_crosscheck(
+        extraction(),
+        "Late delivery penalty: 0.5-1% of order value per week.",
+    )
+    assert has_failure(failures, "penalty")
