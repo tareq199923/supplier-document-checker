@@ -1,7 +1,7 @@
 # Project Progress
 
 ## Current Phase
-Phase 3 — Core building (foundation, rule engine, PDF reader, Gate 1, Gate 2 and extractor done; purchase request comparison (F005) is next)
+Phase 3 — Core building (foundation, rule engine, PDF reader, Gate 1, Gate 2 and extractor done; purchase request comparison (F005) done; the fixed workflow (F007) is next)
 
 ## Completed
 - [x] Created project directory, Python 3.12 virtual environment and project folders
@@ -23,15 +23,15 @@ Phase 3 — Core building (foundation, rule engine, PDF reader, Gate 1, Gate 2 a
 - [x] Live plumbing check (free model deepseek-v4.1-flash:free through OpenRouter, pack 03): Gate 1 passed, one call used 1,228 tokens in and 1,538 out in 10.7 s, and the reply passed Gate 2 on the first try with no failures. This is a plumbing check only, not an accuracy result
 - [x] Anthropic output cap in src/llm.py raised from 2000 to 4096 tokens (the free-model run used 1,538 output tokens, close to the old cap, and a cut-off reply would fail Gate 2 and send a good pack to a person); the openai and gemini paths set no cap, so they are unchanged
 - [x] Gate 2 gold extractions added for packs 03, 04 and 07 (tests/gold_extractions.json); all 10 packs now covered; the gold-pack guard test (test_gold_fixture_has_the_ten_approved_packs) asserts all ten; 445 tests pass
+- [x] Purchase request comparison (src/compare.py, F005), tests written first (66 new tests in tests/test_compare.py, red then green; 511 tests pass in total): load_purchase_requests reads the CSV (utf-8-sig) into {(PR number, item): PurchaseRequestRow} with Decimal quantity and max price, and raises PurchaseRequestError for a missing, empty or unreadable file, missing column, blank field, bad or non-positive number, short line or duplicate key. match_item(extraction, table) never raises and returns MatchResult(row, problems, notes, ok, max_price, requested_qty). Strict matching: PR number, item letter, description and unit must agree after trimming, collapsing spaces and ignoring case; a failed match returns no row, so the rules never get another item's price. "VAT included" is a note, not a problem, so rule IDs stay unchanged (pack 10 still R5 + H5). A guard test keeps max_price and requested_qty equal to the hand-typed values in test_rules.py
 
 ## In Progress
 - None
 
 ## Next Up
-- [ ] Purchase request comparison (src/compare.py)
+- [ ] Fixed workflow with one capped retry (src/graph.py, F007), starting with the mapping from Extraction to RuleInputs (parse failures and missing_fields, tests first) and the failed-match rule: run all rules, then turn "Approve" into "Needs a person to check" when MatchResult.ok is False; a Reject from R2 to R5 stays a Reject
 
 ## Pending
-- [ ] Fixed workflow with one capped retry (src/graph.py)
 - [ ] Human review handling
 - [ ] Decision reports (src/report.py)
 - [ ] Streamlit interface (app.py)
@@ -55,6 +55,7 @@ Phase 3 — Core building (foundation, rule engine, PDF reader, Gate 1, Gate 2 a
 - Decision strings are exactly: "Approve", "Reject", "Needs a person to check".
 - Findings carry an optional evidence tuple; RULE_FIELDS in src/rules.py maps each rule to the schema fields the report will quote.
 - CSV is read with utf-8-sig (it has a BOM) and rows are matched by PR number + item letter.
+- Purchase request matching (src/compare.py) is strict: PR number, item letter, description and unit must all agree after ignoring case and extra spaces. A close but different description or a different unit is a problem for a person, never a fuzzy match. A failed match gives the rules no maximum price and no requested quantity (rules.py skips rules whose input is None, so without the graph step a failed match could look like a clean Approve). A mismatch is not a new rule ID: the graph (F007) runs all rules and, when the match failed, turns "Approve" into "Needs a person to check" (a Reject from R2 to R5 stays a Reject). An unusable CSV raises PurchaseRequestError, which the graph turns into a clean error result. "VAT included" is a note, not a finding.
 - Test features before marking them completed.
 - Use a free model for plumbing tests; run the first real golden test on a strong model and report both.
 

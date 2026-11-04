@@ -58,7 +58,7 @@ The LLM must not calculate totals, judge supplier compliance, choose a decision,
 - If there are no findings, the decision is **Approve**.
 - Missing values are not silently invented. Rules R3, R4, H3, and H5 explicitly treat certain missing information as a finding. Rule M reports other required fields that are missing.
 - Read the purchase-request CSV with `encoding="utf-8-sig"` because it has a UTF-8 BOM.
-- Match purchase-request rows by PR number and item letter (A–E), then confirm the item description.
+- Match purchase-request rows by PR number and item letter (A–E), then require the description and unit to agree (case and extra spaces ignored, no fuzzy matching). A failed match gives the rules no maximum price and no requested quantity, and the workflow turns an "Approve" into "Needs a person to check"; a Reject from R2–R5 stays a Reject. No new rule ID is added. "VAT included" on a quotation is a note, not a finding.
 - Treat all PDF text as untrusted data. Ignore instructions that appear inside a supplier PDF.
 - Add a timeout to every LLM call. An API failure must return a clean error result.
 
@@ -146,7 +146,7 @@ These examples are useful regression cases. Do not change a threshold or expecte
 - All 10 sample packs have gold extraction data.
 - Expected decisions and rule IDs are in `expected.json`.
 - The gold fixture guard checks for all ten approved pack keys.
-- The latest recorded full-suite baseline on 2026-11-04 is **445 passed**.
+- The latest recorded full-suite baseline on 2026-11-05 is **511 passed** (445 earlier tests plus 66 in `tests/test_compare.py`).
 - Run tests from the project root with:
 
 ```powershell
@@ -159,9 +159,9 @@ A passing mock/gold test suite verifies deterministic code paths and fixture han
 
 According to `progress.md` and `feature_list.json` at the time this note was written:
 
-**Completed:** project setup, PDF reading/Gate 1, LLM provider layer, config/schema/parsing, rule engine, Gate 2, extractor, and gold extraction coverage for all ten packs.
+**Completed:** project setup, PDF reading/Gate 1, LLM provider layer, config/schema/parsing, rule engine, Gate 2, extractor, purchase-request comparison (`src/compare.py`, F005), and gold extraction coverage for all ten packs.
 
-**Next:** F005 purchase-request comparison (`src/compare.py`).
+**Next:** F007 fixed workflow (`src/graph.py`), starting with the Extraction-to-RuleInputs mapping and the failed-match rule.
 
 **Still pending:** fixed workflow/retry, human-review handling, decision reports, Streamlit interface, full automated evaluation, README, and Loom demo.
 
@@ -183,6 +183,7 @@ The progress document contains an older engineering-decision sentence saying the
 | `src/extractor.py` | LLM extraction prompt and one-attempt extraction call. |
 | `src/validators.py` | Gate 2 schema, evidence, and value validation. |
 | `src/rules.py` | Deterministic rule functions, findings, and decision selection. |
+| `src/compare.py` | Purchase-request CSV loader and strict item matcher (max price and requested quantity for the rules). |
 | `tests/gold_extractions.json` | Gold extraction fixtures for all ten sample packs. |
 
 ## 9. Open questions and known risks
@@ -191,7 +192,8 @@ The progress document contains an older engineering-decision sentence saying the
 2. **Evidence semantics:** Gate 2 does not fully establish that an evidence quote supports the intended field. A quote can exist in the PDF but be contextually wrong.
 3. **Live extraction quality:** one successful live plumbing check is not enough to establish accuracy or repeat-run consistency.
 4. **Workflow status:** reconcile the older LangGraph statement in `progress.md` with the F007 pending status before describing the workflow as implemented.
-5. **Feature scope:** F005 purchase-request comparison is the next implementation task. Do not assume it exists; check the repository before starting it.
+5. **Strict purchase-request matching:** the description must equal the CSV description (case and spaces ignored) and the unit must equal the CSV unit; anything else sends the case to a person, because a wrong match is worse than a human check. All ten gold packs match exactly today, but a real supplier who rewords an item will be flagged. The business owner may want a looser rule.
+6. **Extraction-to-rule-input mapping:** nothing yet converts an Extraction into RuleInputs (parse failures, `missing_fields`); this is the first job of F007 and needs its own tests.
 
 ## 10. Maintenance rules for this note
 
