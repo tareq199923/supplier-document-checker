@@ -30,6 +30,14 @@ caught them.
 8. **A memory claim checked against the file.** The agent said the Anthropic output cap was 2,000
    tokens. A code search found nothing, so it re-read `llm.py` before editing. The claim was right,
    and the cap was raised to 4,096 only after that check.
+9. **Incomplete workflow-stage metadata in F008.** The first implementation tagged PDF-read and
+   Gate 1 errors but omitted the `extract` and `compare` stages. The new tests exposed the omission:
+   7 of 74 result tests failed, including LLM/CSV classification and sanitisation cases. The agent
+   added the two missing stage values and reran the suite. A later audit also found that the CSV
+   loader can wrap raw operating-system read details in `PurchaseRequestError`; a new regression
+   test caught that those details could reach the public result. The result layer now replaces
+   that specific raw OS detail with a fixed message. Lesson: test every workflow error branch and
+   inspect the source of exception messages, not just the exception class.
 
 ## Prompts that worked
 
@@ -54,3 +62,11 @@ caught them.
 - Preserved all eight previously recorded AI mistakes above without removing or rewriting their substance.
 - The documentation review found two tracker items to reconcile later: the old LangGraph statement conflicts with F007 still being marked pending, and the old golden-test question is already resolved by tests comparing complete rule-ID lists. These were documented as status/maintenance notes; no other project files were changed.
 - No application source code, tests, fixtures, progress tracker, feature list, or README were changed as part of this documentation task.
+
+### 2026-11-05 — F008 human review and error handling
+
+- Added `src/result.py` as the single adapter from final LangGraph state to immutable `CheckResult` objects. It carries ordered rule/match/extraction/document reasons, exact evidence quotes, missing-field names, match summaries, attempt counts and safe error information.
+- Added PDF path and full CSV-loader prechecks before the workflow, so an unusable purchase-request CSV does not trigger an LLM call. Document-read/Gate 1 problems map to human review; system/input failures map to errors with no decision.
+- Added stage metadata additively to graph error states. The first pass missed `extract` and `compare`; tests exposed this before completion, and both were added without changing F007 routing or decisions.
+- Added 75 tests in `tests/test_result.py`, including all ten gold packs, error classification, evidence invariants, sanitisation and a regression test for raw CSV OS-error details. Focused tests: **75 passed**; full suite: **618 passed**.
+- Updated `progress.md`, `feature_list.json`, and this technical note. F009 reports and F010 UI remain out of scope.

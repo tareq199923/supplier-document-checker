@@ -1,7 +1,7 @@
 # Project Progress
 
 ## Current Phase
-Phase 3 — Core building (foundation, rule engine, PDF reader, Gate 1, Gate 2, extractor, purchase request comparison (F005), and fixed workflow (F007) done)
+Phase 3 — Core building (foundation, rule engine, PDF reader, Gate 1, Gate 2, extractor, purchase request comparison (F005), fixed workflow (F007), and human review/error handling (F008) done)
 
 ## Completed
 - [x] Created project directory, Python 3.12 virtual environment and project folders
@@ -28,11 +28,13 @@ Phase 3 — Core building (foundation, rule engine, PDF reader, Gate 1, Gate 2, 
 - [x] Fixed LangGraph workflow (src/graph.py, F007), tests written first: maps validated Extraction values to Decimal RuleInputs, converts delivery weeks to days, records absent/unparseable required fields for rule M, uses only confirmed purchase-request values, runs every rule, and blocks Approve when the purchase-request match fails while preserving Reject. LangGraph wires Gate 1, extraction, Gate 2, one capped retry, CSV matching, rule evaluation and final routing; PDF, LLM and CSV errors return clean error states. 25 workflow tests cover mapping, retry/error paths and all 10 approved golden extraction fixtures against expected rule IDs and decisions (LLM/Gate 2 stubbed in these workflow tests); full suite: 536 passed.
 - [x] F007 follow-up review (2026-11-05), tests first (3 red, then green): the mapper now lists unreadable optional numbers and unknown delivery units for rule M instead of dropping them, and an unreadable penalty no longer causes a false R3 reject (R3 fires only when the penalty is truly null). Added workflow tests for a failed match on a clean pack and on an R1 pack (R1/H1/H2 cannot run without a confirmed maximum price, so the case goes to a person), and for a truly absent penalty still rejecting. NOTE.md section 7, 9 and the key-files table updated. Full suite: 543 passed.
 
+- [x] F008 Human review and error handling (`src/result.py`): added immutable `CheckResult`, `Reason`, `MatchSummary` and `ErrorInfo` types; `build_result` maps final workflow states without exposing raw provider errors; `check_supplier` prechecks the PDF and fully validates the CSV before any LLM call, then returns one result. Document problems map to human review; missing/invalid inputs, LLM failures, unusable CSV and unexpected exceptions map to clean errors with no decision. Exact evidence quotes come from `RULE_FIELDS`; rule M lists missing fields without quotes. Added 75 result-layer tests, including ten gold packs, sanitisation, attempts, stage mapping and invariants. A regression test also ensures raw OS error details from CSV reads are not exposed. Full suite: 618 passed.
+
 ## In Progress
 - None
 
 ## Next Up
-- [ ] Human review handling and error-result details (F008)
+- [ ] Supplier decision reports (F009)
 
 ## Pending
 - [ ] Decision reports (src/report.py)

@@ -28,6 +28,12 @@ from src.schema import Extraction
 from src.validators import validate_extraction
 
 
+STAGE_READ_PDF = "read_pdf"   # PDF could not be opened or read
+STAGE_GATE1 = "gate1"          # PDF text too short (Gate 1)
+STAGE_EXTRACT = "extract"      # LLM call failed (first try or retry)
+STAGE_COMPARE = "compare"      # purchase-request CSV unusable
+
+
 class WorkflowState(TypedDict, total=False):
     pdf_path: str
     csv_path: str
@@ -44,6 +50,7 @@ class WorkflowState(TypedDict, total=False):
     decision: str
     status: str
     error: str | None
+    stage: str  # set only on error states: where the workflow stopped
 
 
 _NUMERIC_FIELDS = (
@@ -171,10 +178,20 @@ def decide_with_match(findings: list[Finding], match: MatchResult) -> str:
 def _read_and_gate(state: WorkflowState) -> dict:
     result = read_pdf(state["pdf_path"])
     if not result.ok:
-        return {"status": "error", "error": result.error, "attempts": 0}
+        return {
+            "status": "error",
+            "error": result.error,
+            "attempts": 0,
+            "stage": STAGE_READ_PDF,
+        }
     gate_error = gate_text(result.text)
     if gate_error:
-        return {"status": "error", "error": gate_error, "attempts": 0}
+        return {
+            "status": "error",
+            "error": gate_error,
+            "attempts": 0,
+            "stage": STAGE_GATE1,
+        }
     return {
         "pdf_text": result.text,
         "page_count": result.page_count,
@@ -190,7 +207,12 @@ def _extract(state: WorkflowState) -> dict:
     try:
         result = extract(state["pdf_text"], state.get("failures", ()))
     except LLMError as error:
-        return {"attempts": attempts, "status": "error", "error": str(error)}
+        return {
+            "attempts": attempts,
+            "status": "error",
+            "error": str(error),
+            "stage": STAGE_EXTRACT,
+        }
     return {"attempts": attempts, "raw_text": result.text, "error": None}
 
 
@@ -205,7 +227,11 @@ def _compare(state: WorkflowState) -> dict:
     try:
         table = load_purchase_requests(state["csv_path"])
     except PurchaseRequestError as error:
-        return {"status": "error", "error": str(error)}
+        return {
+            "status": "error",
+            "error": str(error),
+            "stage": STAGE_COMPARE,
+        }
     result = match_item(state["extraction"], table)
     return {"purchase_table": table, "match": result, "error": None}
 

@@ -146,7 +146,7 @@ These examples are useful regression cases. Do not change a threshold or expecte
 - All 10 sample packs have gold extraction data.
 - Expected decisions and rule IDs are in `expected.json`.
 - The gold fixture guard checks for all ten approved pack keys.
-- The latest recorded full-suite baseline on 2026-11-05 is **543 passed** (511 before F007, plus 32 in `tests/test_graph.py`).
+- The latest recorded full-suite baseline on 2026-11-05 after F008 is **618 passed** (543 after F007, plus 75 in `tests/test_result.py`).
 - Run tests from the project root with:
 
 ```powershell
@@ -159,18 +159,21 @@ A passing mock/gold test suite verifies deterministic code paths and fixture han
 
 According to `progress.md` and `feature_list.json` at the time this note was written:
 
-**Completed:** project setup, PDF reading/Gate 1, LLM provider layer, config/schema/parsing, rule engine, Gate 2, extractor, purchase-request comparison (`src/compare.py`, F005), gold extraction coverage for all ten packs, and the fixed LangGraph workflow (`src/graph.py`, F007).
+**Completed:** project setup, PDF reading/Gate 1, LLM provider layer, config/schema/parsing, rule engine, Gate 2, extractor, purchase-request comparison (`src/compare.py`, F005), gold extraction coverage for all ten packs, the fixed LangGraph workflow (`src/graph.py`, F007), and normalized human-review/error handling (`src/result.py`, F008).
 
-**Next:** F008 human-review handling and the error-result shape.
+**Next:** F009 supplier decision reports, followed by F010 the Streamlit interface.
 
-**Still pending:** human-review handling, decision reports, Streamlit interface, full automated evaluation, README, and Loom demo.
+**Still pending:** decision reports, Streamlit interface, full automated evaluation, README, and Loom demo.
 
 The workflow tests in `tests/test_graph.py` stub the PDF reader, the LLM call and Gate 2, and feed the approved gold extractions through the real mapping, matching, rules and decision steps. They prove the wiring and all ten expected decisions and rule-ID lists. They are not a live run with real PDFs and a real model; that is the job of F011 and F015.
 
 ### Workflow behaviour (`src/graph.py`)
 
 - Routing is fixed: read PDF and Gate 1, extract, Gate 2, then compare, evaluate and finalize. `MAX_ATTEMPTS = 2` means one first try plus at most one retry, and the retry sends only the Gate 2 failure messages. A second Gate 2 failure ends as `needs_review` with the decision "Needs a person to check".
-- Result status is one of `completed`, `needs_review` or `error`. An error (Gate 1, LLM failure, unusable CSV) has no `decision` key; an LLM failure on the retry attempt is also an error. The exact error-result shape is to be defined in F008.
+- The graph's internal state status is `completed`, `needs_review` or `error`. Graph error states have no `decision` key and carry an additive `stage` (`read_pdf`, `gate1`, `extract`, or `compare`). Do not treat that internal state as the public result contract.
+- F008 adds `src/result.py`: `build_result(state)` converts the final graph state into one frozen `CheckResult` with `status`, `decision`, ordered `reasons`, `notes`, optional `match`, `attempts`, and optional `error`. Reports and the UI should consume this object, not LangGraph state.
+- The adapter maps PDF read failures and Gate 1 failures (including corrupt, password-protected, blank and too-short documents) to `needs_review` with the decision `Needs a person to check`. Missing/invalid/unreadable PDF paths, LLM failures, unusable CSV files and unexpected exceptions become `error` with `decision=None` and fixed public messages. LLM provider exception text and raw OS read-error details are not exposed. App-written CSV validation details may be retained for the operator.
+- `check_supplier(pdf_path, csv_path)` is the single entry point. It checks the PDF path, runs the real CSV loader before any LLM call, runs the fixed workflow, and returns one `CheckResult`. Unexpected exceptions are caught as `Exception`, never `BaseException`; unknown execution stages fall back to `workflow` or `result` rather than claiming a precise node.
 - **Failed purchase-request match:** the rules get no maximum price and no requested quantity, so R1, H1 and H2 cannot run. The workflow turns "Approve" into "Needs a person to check" and keeps any other Reject. A supplier whose price would have triggered R1 therefore goes to a person, not to Reject, when its item does not match. This is the safe direction.
 - **Unreadable values:** a value that is written in the document but cannot be read as a number, or a delivery unit other than day or week, is listed for rule M so a person sees it. It is never silently treated as absent. In particular an unreadable penalty rate does not trigger R3 ("no penalty clause"); R3 fires only when the penalty is truly null. Gate 2 normally stops these values earlier, so this is a second line of defence.
 
@@ -191,8 +194,10 @@ The workflow tests in `tests/test_graph.py` stub the PDF reader, the LLM call an
 | `src/validators.py` | Gate 2 schema, evidence, and value validation. |
 | `src/rules.py` | Deterministic rule functions, findings, and decision selection. |
 | `src/compare.py` | Purchase-request CSV loader and strict item matcher (max price and requested quantity for the rules). |
-| `src/graph.py` | Fixed LangGraph workflow, Extraction-to-RuleInputs mapping, final decision with the failed-match rule. |
+| `src/graph.py` | Fixed LangGraph workflow, Extraction-to-RuleInputs mapping, final decision with the failed-match rule; error states carry an additive stage. |
+| `src/result.py` | F008 normalized immutable `CheckResult` types, evidence/reason mapping, input prechecks and safe error handling. |
 | `tests/test_graph.py` | Workflow, mapping and failed-match tests (LLM and Gate 2 stubbed). |
+| `tests/test_result.py` | F008 result mapping, evidence, attempts, sanitisation, prechecks and ten-pack golden-result tests. |
 | `tests/gold_extractions.json` | Gold extraction fixtures for all ten sample packs. |
 
 ## 9. Open questions and known risks
@@ -202,7 +207,7 @@ The workflow tests in `tests/test_graph.py` stub the PDF reader, the LLM call an
 3. **Live extraction quality:** one successful live plumbing check is not enough to establish accuracy or repeat-run consistency.
 4. **Workflow status (resolved 2026-11-05):** F007 is implemented in `src/graph.py` and covered by `tests/test_graph.py`. The older contradictory sentence in `progress.md` has been corrected.
 5. **Strict purchase-request matching:** the description must equal the CSV description (case and spaces ignored) and the unit must equal the CSV unit; anything else sends the case to a person, because a wrong match is worse than a human check. All ten gold packs match exactly today, but a real supplier who rewords an item will be flagged. The business owner may want a looser rule.
-6. **Extraction-to-rule-input mapping (resolved 2026-11-05):** `map_extraction_to_rule_inputs` in `src/graph.py` is built and tested, including unreadable values and unknown delivery units. Open for F008: the exact shape of an error result (no `decision` key today).
+6. **F008 result contract (resolved 2026-11-05):** `src/result.py` defines the immutable `CheckResult` shape used by future reports and UI. The graph state remains internal; `build_result` maps it to completed, needs-review or error results, with `decision=None` for system errors. The execution-stage fallback is `workflow` or `result` when the exact node is unavailable.
 
 ## 10. Maintenance rules for this note
 
