@@ -81,8 +81,10 @@ def has_failure(failures, *needles):
 
 # ---------- gold fixture sanity --------------------------------------------
 
-def test_gold_fixture_has_the_seven_approved_packs():
-    assert GOLD_PACKS == ["01", "02", "05", "06", "08", "09", "10"]
+def test_gold_fixture_has_the_ten_approved_packs():
+    assert GOLD_PACKS == [
+        "01", "02", "03", "04", "05", "06", "07", "08", "09", "10",
+    ]
 
 
 def test_gold_fixture_uses_only_schema_fields():
