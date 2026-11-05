@@ -10,6 +10,8 @@ Every decision includes the relevant evidence quotes from the supplier's PDF. Wh
 
 > **Demo domain:** Aamar Garments Ltd and its procurement rules are fictional. See [samples/company-rules.md](samples/company-rules.md).
 
+> **Project status:** All features, F001–F017, are complete (see `feature_list.json`), including the Loom demo video.
+
 ---
 
 ## How it works
@@ -79,7 +81,7 @@ The sample policy belongs to the fictional **Aamar Garments Ltd**.
 | Reject | R5 | Delivery is later than 45 days after the purchase order |
 | Human review | H1 | Unit price is above the maximum, but by no more than 3% |
 | Human review | H2 | Quoted quantity differs from requested quantity by more than 5% |
-| Human review | H3 | Payment terms are unclear or outside the allowed range |
+| Human review | H3 | Payment terms are unclear, or the balance is not due within 30–60 days |
 | Human review | H4 | Delivery is promised in 31–45 days |
 | Human review | H5 | VAT is not shown separately at 15% |
 | Human review | H6 | Quotation calculations do not add up |
@@ -157,7 +159,84 @@ Open the local URL printed by Streamlit. Upload a supplier quotation PDF and the
 
 The page displays the decision, reasons and supporting evidence, purchase-request match information, and model-call count. A plain-text decision report can be downloaded.
 
-**Upload limits:** supplier PDF up to 10 MB; purchase-request CSV up to 1 MB.
+**Upload limits:** supplier PDF up to 10 MB; purchase-request CSV up to 1 MB. The 10 MB limit is also set in `.streamlit/config.toml`.
+
+### Try it with the sample files
+
+The `samples/` folder has everything needed for a first run:
+
+1. Start the app (command above).
+2. Upload one of `samples/supplier-pack-01.pdf` … `supplier-pack-10.pdf` as the quotation.
+3. Upload `samples/purchase-request.csv` as the purchase request.
+4. Select **Check quotation**.
+
+The expected decision for each sample pack is recorded in `expected.json`.
+
+### Purchase-request CSV format
+
+The CSV lists the items being requested. The sample file `samples/purchase-request.csv` uses these columns:
+
+| Column | Meaning |
+|---|---|
+| `PR number` | Purchase-request number, for example `PR-2026-114` |
+| `Item` | Item letter within the request (`A`, `B`, …) |
+| `Description` | Item description, matched against the quotation |
+| `Unit` | Unit of measure, for example `metre`, `piece`, `cone` |
+| `Quantity requested` | Quantity the company asked for |
+| `Maximum unit price (BDT)` | Highest unit price the company will accept (used by R1 and H1) |
+
+One CSV can contain several items. The quotation is matched to a single row by PR number, item, description and unit (see *Known limitations*, item 5).
+
+### Using it without the UI
+
+`check_supplier(pdf_path, csv_path)` in `src/result.py` is the single entry point that the app uses. It returns one `CheckResult`:
+
+```python
+from src.result import check_supplier
+
+result = check_supplier("samples/supplier-pack-01.pdf", "samples/purchase-request.csv")
+print(result.status, result.decision)
+```
+
+`status` is `completed`, `needs_review` or `error`. For an error, `decision` is `None` and `result.error` holds the code, a fixed message, the stage and whether a retry may help. The call uses the provider configured in `.env`.
+
+### Errors versus decisions
+
+Problems with the *document* are handled as a decision: an unreadable or too-short PDF, or extraction that fails validation twice, gives **Needs a person to check**. Problems with the *system or inputs* are errors, with no decision. The app shows the error code, the stage and a retry hint.
+
+| Error code | Meaning | Retry may help |
+|---|---|---|
+| `INPUT_NOT_FOUND` | The supplier PDF path does not exist. | No |
+| `INPUT_INVALID` | The PDF path is empty or is not a single file (for example, a folder). | No |
+| `INPUT_UNREADABLE` | The PDF exists but cannot be read (permissions). | No |
+| `PURCHASE_REQUEST_UNUSABLE` | The purchase-request CSV is missing, unreadable or invalid. | No |
+| `LLM_ERROR` | The model could not be reached or did not answer in time. | Yes |
+| `UNEXPECTED` | An unexpected problem stopped the check. | No |
+
+The CSV is checked before any model call, so a broken CSV never uses the model.
+
+---
+
+## Privacy and data handling
+
+- The text extracted from the supplier PDF is sent to the LLM provider you configure in `.env`. Check that provider's data terms before uploading real or confidential supplier documents.
+- The default test suite uses the mock provider and fixtures, so it sends nothing to any provider.
+- `.env` and `reports/decisions/` are git-ignored. Keep API keys out of commits, screenshots and logs.
+- The sample company, suppliers and documents are fictional.
+
+---
+
+## Troubleshooting
+
+| Symptom | What to do |
+|---|---|
+| `... is not set (see .env.example)` | Copy `.env.example` to `.env` and set the API key for your provider. |
+| `LLM_PROVIDER must be one of ...` | Set `LLM_PROVIDER` to `anthropic`, `openai` or `gemini`. |
+| `LLM_MODEL is not set` | Set `LLM_MODEL` to a model name your provider offers. |
+| Request times out | Increase `LLM_TIMEOUT_SECONDS` (default 60). |
+| Model error (rate limit, authentication, network) | The app reports it as an error, not a decision. Trying again may work once the provider problem is fixed. |
+| PDF reported as unreadable | Gate 1 stops PDFs with fewer than 100 characters of extractable text, such as scans, before any model call. A person must check the document. |
+| PowerShell blocks `Activate.ps1` | Skip activation and run `.venv\Scripts\python.exe -m ...` directly. |
 
 ---
 
@@ -189,6 +268,13 @@ python -m pytest -m live -q -s
 
 The F015 command evaluates the 20 synthetic cases and the repeat-run consistency checks. The recorded F015 run took about 14 minutes.
 
+Both commands use `-m live`, so if both environment variables are set in the same PowerShell session, both evaluations run together. To run only one, clear the variable you do not want (or both, when you are finished):
+
+```powershell
+Remove-Item Env:RUN_LIVE_EVALUATION
+Remove-Item Env:RUN_LIVE_F015
+```
+
 ---
 
 ## Recorded evaluation results
@@ -217,7 +303,7 @@ This is a controlled prototype, not yet a fully validated production procurement
 1. **Evidence-to-field matching is limited.** Gate 2 checks that a quote appears in the PDF and that the extracted value appears in its evidence (with documented exceptions). It does not fully prove that the quote refers to the correct field; for example, a bare number can pass.
 2. **Evaluation coverage is narrow.** The recorded live results use one model, one frozen prompt version and the current ten sample packs. They do not establish general accuracy across suppliers, industries or document styles.
 3. **Synthetic documents are controlled.** The synthetic PDFs use a fixed text template. They test defined wording variations and repeatability, not arbitrary layouts, scanned pages or poor-quality documents.
-4. **Scanned PDFs may not work.** The current PDF reader extracts embedded text; it does not provide a complete OCR pipeline for image-only scans.
+4. **Scanned PDFs may not work.** The current PDF reader extracts embedded text; it does not provide a complete OCR pipeline for image-only scans. Gate 1 treats a PDF with fewer than 100 characters of extractable text as unreadable and sends it to a person.
 5. **Purchase-request matching is intentionally strict.** PR number, item letter, description and unit must match after case and whitespace normalisation. There is no fuzzy matching; uncertain matches go to a person.
 6. **Some UI checks remain open.** Manual verification of rejection for a PDF larger than 10 MB and visual confirmation of the 240-character text truncation are still recommended.
 
@@ -243,21 +329,34 @@ supplier-document-checker/
 │   ├── config.py               # Centralised thresholds
 │   ├── result.py               # Immutable result structures
 │   ├── report.py               # Deterministic decision reports
+│   ├── ui_helpers.py           # Upload checks and result views used by app.py
 │   ├── evaluation.py           # Golden evaluation harness
 │   ├── synthetic.py            # Synthetic test cases and PDFs
 │   └── consistency.py          # Repeat-run consistency checks
 ├── samples/                    # Example PDFs, CSV and company rules
-├── tests/                      # Offline and opt-in live tests
+├── tests/                      # Offline and opt-in live tests, with gold and synthetic fixtures
 ├── reports/
+│   ├── supplier-pack-NN.txt    # Raw extracted PDF text for the sample packs
 │   ├── decisions/              # Generated supplier decision reports
 │   └── evaluation/             # Recorded evaluation evidence
 ├── expected.json               # Expected decisions for sample packs
+├── feature_list.json           # Feature status tracker
+├── pytest.ini                  # Test configuration and the live-test marker
+├── .env.example                # Provider settings template (copy to .env)
+├── .gitignore                  # Keeps .env and generated decision reports out of git
+├── .streamlit/config.toml      # Streamlit settings (10 MB upload limit)
 ├── requirements.txt
 ├── NOTE.md                     # Detailed technical notes and design decisions
 ├── AGENTS.md                   # Development constraints and project rules
 ├── progress.md                 # Development progress
 └── AI-LOG.md                   # AI development mistakes and corrections
 ```
+
+---
+
+## License
+
+No license file has been added to this repository yet. Until the owner chooses and adds one, no permission to reuse the code is granted.
 
 ---
 
