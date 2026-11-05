@@ -147,6 +147,7 @@ These examples are useful regression cases. Do not change a threshold or expecte
 - Expected decisions and rule IDs are in `expected.json`.
 - The gold fixture guard checks for all ten approved pack keys.
 - The full-suite result after F009 is **769 passed** (622 before F009 plus 147 report tests in `tests/test_report.py`).
+- After F010 implementation and its truncation regression test, the full suite is **848 passed** (769 plus 53 in `tests/test_ui_helpers.py` and 26 in `tests/test_app.py`). F010 is **completed** in `feature_list.json` after the tests and headless startup check; a real browser upload/check/download smoke test remains recommended before demo/submission (see section 9, item 7).
 - Run tests from the project root with:
 
 ```powershell
@@ -161,9 +162,9 @@ According to `progress.md` and `feature_list.json` at the time this note was wri
 
 **Completed:** project setup, PDF reading/Gate 1, LLM provider layer, config/schema/parsing, rule engine, Gate 2, extractor, purchase-request comparison (`src/compare.py`, F005), gold extraction coverage for all ten packs, the fixed LangGraph workflow (`src/graph.py`, F007), normalized human-review/error handling (`src/result.py`, F008), and deterministic supplier decision reports (`src/report.py`, F009).
 
-**Next:** F010 the Streamlit interface.
+**Completed:** F010 the Streamlit interface (`app.py`, `src/ui_helpers.py`), with the 240-character UI text limit, 10 MB Streamlit upload cap, 848 passing tests and headless startup verification. A real browser smoke test remains recommended.
 
-**Still pending:** Streamlit interface, full automated evaluation, README, and Loom demo.
+**Still pending:** full automated evaluation, README, and Loom demo.
 
 The workflow tests in `tests/test_graph.py` stub the PDF reader, the LLM call and Gate 2, and feed the approved gold extractions through the real mapping, matching, rules and decision steps. They prove the wiring and all ten expected decisions and rule-ID lists. They are not a live run with real PDFs and a real model; that is the job of F011 and F015.
 
@@ -177,6 +178,17 @@ The workflow tests in `tests/test_graph.py` stub the PDF reader, the LLM call an
 - **Result-layer details to know:** (1) For rule M, `not_stated` means "no usable value": it lists fields that are absent and also fields that are written but unreadable. (2) `CheckResult.attempts` is the number of model calls as far as known; after an unexpected exception the workflow state is lost, so it is 0 even if a call was made. (3) `CheckResult.match` is `None` when the purchase-request match never ran (Gate 1, Gate 2 failed twice, or an error). (4) CSV error text is kept for the operator only when the loader wrote it itself. `src/compare.py` now names the file without its folder and shows only the exception type for operating-system read failures. `src/result.py` still replaces those two messages with fixed text as a second line of defence, and a test with the real loader guards against a reworded message slipping through.
 - **Failed purchase-request match:** the rules get no maximum price and no requested quantity, so R1, H1 and H2 cannot run. The workflow turns "Approve" into "Needs a person to check" and keeps any other Reject. A supplier whose price would have triggered R1 therefore goes to a person, not to Reject, when its item does not match. This is the safe direction.
 - **Unreadable values:** a value that is written in the document but cannot be read as a number, or a delivery unit other than day or week, is listed for rule M so a person sees it. It is never silently treated as absent. In particular an unreadable penalty rate does not trigger R3 ("no penalty clause"); R3 fires only when the penalty is truly null. Gate 2 normally stops these values earlier, so this is a second line of defence.
+
+### Streamlit interface behaviour (`app.py`, `src/ui_helpers.py`, F010)
+
+- `app.py` is presentation only. `src/ui_helpers.py` has no Streamlit import and reuses `check_supplier` and the F009 report writer; it adds no business rule. `CheckResult`, the rules and F009 are unchanged.
+- The check runs only when the button is pressed, once per press. Choosing or changing a file starts nothing. The outcome is kept in `st.session_state`, so a download click or any other rerun shows the stored result and does not run the workflow again. If either upload changes (name or content) the stored outcome is dropped.
+- Each submission uses its own temporary folder. The uploads are written under the fixed names `supplier.pdf` and `purchase-request.csv`; the uploaded file name is never used in a disk path. It is passed to `write_report` only as the label for the "Source file:" line. The report is read into memory and the folder is removed before the result is shown. Nothing is written to `reports/` or `reports/decisions/`.
+- Upload limits: Streamlit's `.streamlit/config.toml` caps uploads at 10 MB; helper checks limit PDF to 10 MB and CSV to 1 MB. Empty or odd files are passed to the existing workflow, which handles them before any model call.
+- Supplier-derived text in the UI is cleaned and shortened to 240 characters (same as the report), with the report's `[shortened]` marker.
+- Reasons are shown in the same order as the report (Reject-severity first, otherwise unchanged). `ui_helpers.py` keeps its own copy of that three-line sort because `report._ordered` is private and F009 stays untouched; a test compares the two for many orderings, so any drift fails.
+- Text that comes from the document (supplier name, quotes, messages, match problems, error text) is cleaned with `report.clean_text()` and shown only with `st.text`, never as Markdown or HTML. An error result shows "Decision: No decision was made." and no decision string. A download is offered for every result, errors included. The next-step wording appears only in the downloaded report.
+- Problems in the page itself (temporary files, the report, an unexpected exception) use fixed messages with no path and no exception text.
 
 ## 8. Key files
 
@@ -199,6 +211,10 @@ The workflow tests in `tests/test_graph.py` stub the PDF reader, the LLM call an
 | `src/result.py` | F008 normalized immutable `CheckResult` types, evidence/reason mapping, input prechecks and safe error handling. |
 | `src/report.py` | F009 deterministic plain-text report rendering and writing from one `CheckResult`, with evidence sanitization and stable reason ordering. |
 | `tests/test_report.py` | F009 report rendering, evidence sanitization, Bengali joiners, reason ordering, deterministic output, path safety and ten-pack golden-report tests. |
+| `app.py` | F010 Streamlit page (presentation only). Implemented and completed; real browser smoke test recommended. |
+| `src/ui_helpers.py` | F010 logic behind the page, no Streamlit import: upload checks, per-submission temporary folder, report bytes, stale-result fingerprint, cleaned display values. |
+| `tests/test_ui_helpers.py` | F010 helper tests (uploads, temporary files, report, safe failures, reason order, no business logic in the UI layer). |
+| `tests/test_app.py` | F010 page tests with Streamlit AppTest and `check_supplier` mocked. |
 | `tests/test_graph.py` | Workflow, mapping and failed-match tests (LLM and Gate 2 stubbed). |
 | `tests/test_result.py` | F008 result mapping, evidence, attempts, sanitisation, prechecks and ten-pack golden-result tests. |
 | `tests/gold_extractions.json` | Gold extraction fixtures for all ten sample packs. |
@@ -211,6 +227,7 @@ The workflow tests in `tests/test_graph.py` stub the PDF reader, the LLM call an
 4. **Workflow status (resolved 2026-11-05):** F007 is implemented in `src/graph.py` and covered by `tests/test_graph.py`. The older contradictory sentence in `progress.md` has been corrected.
 5. **Strict purchase-request matching:** the description must equal the CSV description (case and spaces ignored) and the unit must equal the CSV unit; anything else sends the case to a person, because a wrong match is worse than a human check. All ten gold packs match exactly today, but a real supplier who rewords an item will be flagged. The business owner may want a looser rule.
 6. **F008 result contract (resolved 2026-11-05):** `src/result.py` defines the immutable `CheckResult` shape used by future reports and UI. The graph state remains internal; `build_result` maps it to completed, needs-review or error results, with `decision=None` for system errors. The execution-stage fallback is `workflow` or `result` when the exact node is unavailable.
+7. **F010 status and known limits:** The Streamlit interface is implemented, tested, and marked completed after the 848-test suite and headless startup check. `.streamlit/config.toml` sets Streamlit's upload cap to 10 MB; helper checks additionally limit the PDF to 10 MB and CSV to 1 MB. Supplier-derived free text shown in the UI is cleaned and capped at the report's 240-character limit, with the report's `[shortened]` marker. Not covered by automated tests: a real browser run with a provider key, and clicking Download in a browser (helper tests check report bytes and file name; AppTest checks that a download button is offered). The report bytes stay in the user's Streamlit session until the files change or the session ends. A very fast second click can, in rare cases, start a second check. Messages inherited from F008 are shown unchanged (for example, a missing API key reads like a network problem). The tests rely on Streamlit 1.66.1 AppTest features and `requirements.txt` does not pin the version.
 
 ## 10. Maintenance rules for this note
 

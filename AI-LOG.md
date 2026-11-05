@@ -39,6 +39,18 @@ caught them.
    that specific raw OS detail with a fixed message. Lesson: test every workflow error branch and
    inspect the source of exception messages, not just the exception class.
 
+10. **Implementation written before its tests (F010).** After the helper tests were green, the agent
+    prepared `app.py` before `tests/test_app.py` existed, which breaks the tests-first rule. Caught
+    by the agent itself when it checked its own next step against that rule; the staged write was
+    declined before it landed, `test_app.py` was written and confirmed red, and only then was
+    `app.py` written. Lesson: check each write against the order tests, red, code, green.
+11. **A button that stayed disabled (F010).** The first `app.py` drew the Check button disabled
+    during the run that performs the check. A page test that clicks twice failed with "disabled
+    widget", which showed that in a real browser the button would stay greyed out after the check
+    finished. The page now draws a disabled copy while the check runs and swaps in the normal
+    button in the same slot afterwards. The test was not changed. Lesson: a status flag that
+    disables a control must be cleared in the same script run, not only on the next one.
+
 ## Prompts that worked
 
 (To be written by Tareq in his own words before submission: 3 to 4 prompts that gave good results.)
@@ -79,3 +91,18 @@ caught them.
 - Report evidence is sanitized as untrusted text. Control/format characters are removed except Bengali ZWNJ/ZWJ when both adjacent characters are Bengali; reasons are stably ordered with Reject-severity findings first; the exact `Made by:` footer identifies the rules/model boundary.
 - Added report tests for decision/reason rendering, evidence sanitization, Bengali joiners, stable ordering, deterministic output, path safety and all ten gold packs. Full suite: **769 passed**.
 - Rendered and checked sample reports. F009 is complete; F010 and the remaining evaluation/documentation/demo features remain pending.
+
+### 2026-11-05 — F010 Streamlit interface (implemented, awaiting owner verification)
+
+- Approved plan followed: baseline `pytest` first (769 passed, Streamlit 1.66.1, Python 3.12.10), tests before code, no change to the core modules, `expected.json`, F009 or the existing tests. `git ls-files reports` confirmed the ten `reports/supplier-pack-NN.txt` files are tracked; the app never writes there.
+- Added `src/ui_helpers.py` (no Streamlit import): upload checks (10 MB PDF, 1 MB CSV), one temporary folder per submission that is always removed, the original upload name used only as the report label, the report read into memory, a fingerprint of both uploads to drop stale results, and cleaned display values. Added `app.py`: presentation only, the check starts only from the button, the result is kept in session state, text from the document is shown with `st.text` only, and a download is offered for every result including errors.
+- Reasons use a copy of the report's stable "Reject first" sort, with a test that compares the two orderings; the README was left untouched (F016).
+- Tests: 53 in `tests/test_ui_helpers.py` and 25 in `tests/test_app.py` (AppTest with `check_supplier` mocked). Full suite: **847 passed**. The server starts headless and the health endpoint answers `ok`. Two AI mistakes were caught during the work (items 10 and 11 above).
+- **Status at initial handoff:** F010 was left `pending`; the real browser run and download click were not done. Nothing was committed or pushed.
+
+### 2026-11-05 — F010 follow-up (configuration and text-limit decisions implemented)
+
+- Added a tests-first AppTest regression for long supplier names. It failed before the implementation, demonstrating that the UI previously displayed the entire string.
+- Added presentation-layer `_display_text()` in `src/ui_helpers.py`: clean text, cap it at F009's `MAX_TEXT_CHARS` (240), and append the existing `[shortened]` marker. Applied to supplier-derived display fields, including supplier name, reason messages/evidence, match details, and error text. F009 report logic remains unchanged.
+- Added `.streamlit/config.toml` with `[server] maxUploadSize = 10`, matching the 10 MB PDF cap. CSV helper cap remains 1 MB.
+- Full test suite after the change: **848 passed**. Headless Streamlit health endpoint: **200 ok**. Updated NOTE/progress to reflect the resolved configuration/text decisions and remaining manual browser/download smoke test. `feature_list.json` status was set to `completed` after the automated tests and startup check. No commit or push.
