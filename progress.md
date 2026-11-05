@@ -1,7 +1,7 @@
 # Project Progress
 
 ## Current Phase
-Phase 3 — Core building (foundation, rule engine, PDF reader, Gate 1, Gate 2, extractor, purchase request comparison (F005), fixed workflow (F007), human review/error handling (F008) and decision reports (F009) done; Streamlit interface (F010) completed; F011 evaluation is next)
+Phase 3 — Core building (F001–F014 complete; F010 Streamlit interface complete; F011 live golden evaluation complete at 9/10 with pack 02 recorded as an N2 wording mismatch; F015 synthetic variants and repeat-run consistency is next)
 
 ## Completed
 - [x] Created project directory, Python 3.12 virtual environment and project folders
@@ -34,13 +34,15 @@ Phase 3 — Core building (foundation, rule engine, PDF reader, Gate 1, Gate 2, 
 - [x] F009 Supplier decision reports (`src/report.py`): deterministic plain-text reports from one immutable `CheckResult`; optional supplier name carried from extraction; output under `reports/decisions/`; evidence sanitized as untrusted text with Bengali ZWNJ/ZWJ preserved only between Bengali characters; Reject-severity reasons stably sorted first; exact `Made by:` footer. Added report tests for rendering, sanitization, ordering, deterministic output, path safety and all ten gold packs. Full suite: 769 passed.
 - [x] F010 Streamlit interface (`app.py`, `src/ui_helpers.py`, `tests/test_ui_helpers.py`, `tests/test_app.py`): tests-first truncation regression added; UI text now follows the report's 240-character limit; `.streamlit/config.toml` sets `maxUploadSize = 10`. Full suite: **848 passed**. Headless startup health endpoint: `200 ok`. F010 is completed in `feature_list.json`. Owner manually verified browser upload/check/report download, expected pack 07 quantity-mismatch review, expected pack 10 R5 rejection + H5 review, rejection of a 1.4 MB CSV, and invalid CSV schema rejection with zero model calls. Manual PDF-over-10-MB rejection and long-text truncation remain unverified.
 
+- [x] F011 Live golden evaluation across all ten sample packs (`src/evaluation.py`, `tests/test_evaluation.py`, `tests/test_live_evaluation.py`, opt-in `live` marker): 43 offline harness tests; default suite **891 passed, 1 skipped**. The live run on 2026-11-05 used `deepseek-v4.1-flash:free` through the configured OpenAI-compatible endpoint with prompt `v1` and passed **9/10**. Pack 02 extracted `penalty_basis = "the order value"`; N2 requires the exact basis `"order value"`, so the pack went to "Needs a person to check" instead of Approve. The rule, prompt and `expected.json` were not changed. Artifacts: `reports/evaluation/f011-golden-run.json` and `.md`.
+
 ## In Progress
 - None
 ## Next Up
-- [ ] F011 automated evaluation across all ten sample packs
+- [ ] F015 synthetic variants and repeat-run consistency
 
 ## Pending
-- [ ] Automated evaluation: golden test, synthetic variants, repeat runs
+- [ ] Synthetic variants and repeat-run consistency (F015)
 - [ ] README, NOTE and AI-LOG written
 - [ ] Loom video recorded
 
@@ -63,9 +65,11 @@ Phase 3 — Core building (foundation, rule engine, PDF reader, Gate 1, Gate 2, 
 - Purchase request matching (src/compare.py) is strict: PR number, item letter, description and unit must all agree after ignoring case and extra spaces. A close but different description or a different unit is a problem for a person, never a fuzzy match. A failed match gives the rules no maximum price and no requested quantity (rules.py skips rules whose input is None, so without the graph step a failed match could look like a clean Approve). A mismatch is not a new rule ID: the graph (F007) runs all rules and, when the match failed, turns "Approve" into "Needs a person to check" (a Reject from R2 to R5 stays a Reject). An unusable CSV raises PurchaseRequestError, which the graph turns into a clean error result. "VAT included" is a note, not a finding.
 - Test features before marking them completed.
 - Use a free model for plumbing tests. For now the first golden run uses the same model (decided 2026-11-05); a stronger model can be added later and both results reported.
+- F011 evaluation pass requires `status == "completed"`, a successful purchase-request match, the exact expected decision and the exact sorted rule-ID list. A business "Needs a person to check" can pass because it is a completed result; a Gate 2 failure, document failure, LLM/network error or harness exception never passes. The live run is opt-in with `RUN_LIVE_EVALUATION=1`; the default suite never calls a model.
 
 ## Open Questions
 - F010: manual browser tests for a PDF over 10 MB and visual confirmation of 240-character UI truncation remain optional follow-ups; upload/check/download, 1 MB CSV rejection, and invalid CSV schema handling were verified.
+- F011 pack 02: the live model returned `penalty_basis = "the order value"` while N2 compares the exact string `"order value"`, so pack 02 is a recorded 9/10 accuracy mismatch. The frozen prompt, N2 rule and `expected.json` were deliberately left unchanged. Decide separately whether N2 should tolerate a leading article; do not change it inside F011.
 
 ## Resolved Decisions (2026-11-05)
 - Golden test compares the EXACT list of rule IDs (R and H rules) against expected.json for every pack, not only the reject IDs. Pack 10 expects R5 + H5.

@@ -148,25 +148,26 @@ These examples are useful regression cases. Do not change a threshold or expecte
 - The gold fixture guard checks for all ten approved pack keys.
 - The full-suite result after F009 is **769 passed** (622 before F009 plus 147 report tests in `tests/test_report.py`).
 - After F010 implementation and its truncation regression test, the full suite is **848 passed** (769 plus 53 in `tests/test_ui_helpers.py` and 26 in `tests/test_app.py`). F010 is **completed** in `feature_list.json` after the tests and headless startup check. The owner subsequently verified the real browser upload/check/download flow, the 1 MB CSV limit, and invalid-CSV precheck behavior; the 10 MB PDF rejection and 240-character truncation remain unverified manually (see section 9, item 7).
+- F011 adds the live golden evaluation (`src/evaluation.py`, `tests/test_evaluation.py`, `tests/test_live_evaluation.py`). The default suite is **891 passed, 1 skipped**; the live test is opt-in with `RUN_LIVE_EVALUATION=1`. The first live run on 2026-11-05 used `deepseek-v4.1-flash:free` with prompt `v1` and passed **9/10**: pack 02 extracted `penalty_basis = "the order value"`, while N2 requires the exact basis `"order value"`, so it went to human review instead of Approve. The rule, prompt and `expected.json` were not changed. One run is not a repeat-consistency measurement (F015). Artifacts: `reports/evaluation/f011-golden-run.json` and `.md`.
 - Run tests from the project root with:
 
 ```powershell
 .venv\Scripts\python.exe -m pytest -q
 ```
 
-A passing mock/gold test suite verifies deterministic code paths and fixture handling. It does not prove that a live LLM will extract every real quotation correctly. The live OpenRouter check recorded in `progress.md` was a plumbing check on Pack 03, not a broad accuracy evaluation.
+A passing mock/gold test suite verifies deterministic code paths and fixture handling. It does not prove that a live LLM will extract every real quotation correctly. The earlier Pack 03 check was a plumbing check only; F011's ten-pack run is the first live golden evaluation (9/10 on 2026-11-05, with the Pack 02 N2 wording mismatch recorded above). It is one run, not a repeat-consistency measurement; F015 covers that.
 
 ## 7. Current implementation status
 
 According to `progress.md` and `feature_list.json` at the time this note was written:
 
-**Completed:** project setup, PDF reading/Gate 1, LLM provider layer, config/schema/parsing, rule engine, Gate 2, extractor, purchase-request comparison (`src/compare.py`, F005), gold extraction coverage for all ten packs, the fixed LangGraph workflow (`src/graph.py`, F007), normalized human-review/error handling (`src/result.py`, F008), and deterministic supplier decision reports (`src/report.py`, F009).
+**Completed:** project setup, PDF reading/Gate 1, LLM provider layer, config/schema/parsing, rule engine, Gate 2, extractor, purchase-request comparison (`src/compare.py`, F005), gold extraction coverage for all ten packs, the fixed LangGraph workflow (`src/graph.py`, F007), normalized human-review/error handling (`src/result.py`, F008), deterministic supplier decision reports (`src/report.py`, F009), and the live golden evaluation harness (`src/evaluation.py`, F011).
 
 **Completed:** F010 the Streamlit interface (`app.py`, `src/ui_helpers.py`), with the 240-character UI text limit, 10 MB Streamlit upload cap, 848 passing tests, headless startup verification, and manual browser verification of upload/check/report download, CSV size rejection, and invalid CSV schema handling. Manual tests for an over-10 MB PDF and long-text truncation remain optional follow-ups.
 
-**Still pending:** full automated evaluation, README, and Loom demo.
+**Still pending:** F015 synthetic variants and repeat-run consistency, README (F016), and the Loom demo (F017).
 
-The workflow tests in `tests/test_graph.py` stub the PDF reader, the LLM call and Gate 2, and feed the approved gold extractions through the real mapping, matching, rules and decision steps. They prove the wiring and all ten expected decisions and rule-ID lists. They are not a live run with real PDFs and a real model; that is the job of F011 and F015.
+The workflow tests in `tests/test_graph.py` stub the PDF reader, the LLM call and Gate 2, and feed the approved gold extractions through the real mapping, matching, rules and decision steps. They prove the wiring and all ten expected decisions and rule-ID lists. F011 now provides the live run with real PDFs and a real model; F015 remains for synthetic variants and repeat-run consistency.
 
 ### Workflow behaviour (`src/graph.py`)
 
@@ -215,6 +216,10 @@ The workflow tests in `tests/test_graph.py` stub the PDF reader, the LLM call an
 | `src/ui_helpers.py` | F010 logic behind the page, no Streamlit import: upload checks, per-submission temporary folder, report bytes, stale-result fingerprint, cleaned display values. |
 | `tests/test_ui_helpers.py` | F010 helper tests (uploads, temporary files, report, safe failures, reason order, no business logic in the UI layer). |
 | `tests/test_app.py` | F010 page tests with Streamlit AppTest and `check_supplier` mocked. |
+| `src/evaluation.py` | F011 live golden evaluation harness: expected/pack loading, per-pack assessment, outcome taxonomy, summary and JSON/Markdown artifacts. |
+| `tests/test_evaluation.py` | F011 offline harness tests (fake checker; no model calls). |
+| `tests/test_live_evaluation.py` | F011 opt-in live ten-pack test (`live` marker; `RUN_LIVE_EVALUATION=1`). |
+| `reports/evaluation/` | Recorded F011 live-run evidence (`f011-golden-run.json` and `.md`). |
 | `tests/test_graph.py` | Workflow, mapping and failed-match tests (LLM and Gate 2 stubbed). |
 | `tests/test_result.py` | F008 result mapping, evidence, attempts, sanitisation, prechecks and ten-pack golden-result tests. |
 | `tests/gold_extractions.json` | Gold extraction fixtures for all ten sample packs. |
@@ -223,7 +228,7 @@ The workflow tests in `tests/test_graph.py` stub the PDF reader, the LLM call an
 
 1. **R4 business policy (resolved 2026-11-05):** reject if either TIN or BIN is missing. No further action.
 2. **Evidence semantics:** Gate 2 does not fully establish that an evidence quote supports the intended field. A quote can exist in the PDF but be contextually wrong.
-3. **Live extraction quality:** one successful live plumbing check is not enough to establish accuracy or repeat-run consistency.
+3. **Live extraction quality:** the first F011 live golden run passed 9/10 on 2026-11-05; pack 02 is a recorded N2 wording mismatch (`penalty_basis = "the order value"` vs the exact `"order value"`). One run is not enough to establish general accuracy or repeat-run consistency; F015 covers repeat runs. The rule, prompt and `expected.json` were not changed for the evaluation.
 4. **Workflow status (resolved 2026-11-05):** F007 is implemented in `src/graph.py` and covered by `tests/test_graph.py`. The older contradictory sentence in `progress.md` has been corrected.
 5. **Strict purchase-request matching:** the description must equal the CSV description (case and spaces ignored) and the unit must equal the CSV unit; anything else sends the case to a person, because a wrong match is worse than a human check. All ten gold packs match exactly today, but a real supplier who rewords an item will be flagged. The business owner may want a looser rule.
 6. **F008 result contract (resolved 2026-11-05):** `src/result.py` defines the immutable `CheckResult` shape used by future reports and UI. The graph state remains internal; `build_result` maps it to completed, needs-review or error results, with `decision=None` for system errors. The execution-stage fallback is `workflow` or `result` when the exact node is unavailable.

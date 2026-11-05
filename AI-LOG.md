@@ -114,3 +114,10 @@ caught them.
 - Owner created a temporary 1.37 MB CSV and confirmed the app rejected it with: `The purchase request CSV is larger than 1 MB. Please choose a smaller file.` This verifies the helper-level CSV limit while remaining below Streamlit's 10 MB global upload cap.
 - Owner uploaded the unrelated `bank-faq.csv` and confirmed the app returned `PURCHASE_REQUEST_UNUSABLE`, listed the missing purchase-request columns, made no decision, and recorded zero model calls. Replacing it with the valid purchase request allowed pack 10 to process normally.
 - Manual browser checks now cover upload, check, report display, download, CSV size rejection, and invalid CSV schema handling. PDF-over-10-MB rejection and visual long-text truncation were not tested. No source code or feature status changed during this verification; this entry records the manual results.
+
+### 2026-11-05 — F011 live golden evaluation
+
+- Added `src/evaluation.py` with 43 offline tests and an opt-in live test (`live` marker). The default suite is **891 passed, 1 skipped**; the live test runs only with `RUN_LIVE_EVALUATION=1`, so normal test runs never call a model.
+- The first ten-pack live run (2026-11-05, `deepseek-v4.1-flash:free`, prompt `v1`, commit `8593502`) passed **9/10**. Pack 02 extracted `penalty_basis = "the order value"`; N2 compares the exact basis `"order value"`, so the pack went to "Needs a person to check" instead of Approve. A follow-up diagnostic extraction confirmed the model's wording.
+- Deliberately did not change the frozen prompt, N2 or `expected.json`. The mismatch is recorded in `reports/evaluation/f011-golden-run.json` and `.md` and remains an open decision for the owner. The live test asserts all ten match, so it exits non-zero on this 9/10 result; the default suite is unaffected.
+- F011 is marked completed on the agreed basis: the harness executed and recorded all ten packs, with the actual 9/10 accuracy reported honestly. F015 remains for synthetic variants and repeat-run consistency.

@@ -1,0 +1,321 @@
+{
+  "feature": "F011",
+  "run_at": "2026-11-05T12:39:51+00:00",
+  "provider": "openai",
+  "model": "deepseek-v4.1-flash:free",
+  "prompt_version": "v1",
+  "git_commit": "8593502d72df0d5cfbc14ab6e39ce8ab0cc6f9c9",
+  "git_dirty": false,
+  "expected_source": "expected.json",
+  "purchase_request": "samples/purchase-request.csv",
+  "totals": {
+    "total": 10,
+    "passed": 9,
+    "failed": 1
+  },
+  "outcomes": {
+    "pass": 9,
+    "accuracy": 1,
+    "extraction": 0,
+    "document": 0,
+    "infrastructure": 0,
+    "app_error": 0,
+    "harness": 0
+  },
+  "packs": [
+    {
+      "pack": "01",
+      "pdf": "supplier-pack-01.pdf",
+      "expected": {
+        "supplier": "Padma Textile Mills",
+        "decision": "Approve",
+        "rule_ids": []
+      },
+      "actual": {
+        "supplier": "Padma Textile Mills Ltd",
+        "decision": "Approve",
+        "rule_ids": [],
+        "status": "completed",
+        "attempts": 1,
+        "match_ok": true,
+        "reason_codes": [],
+        "error": null
+      },
+      "outcome": "pass",
+      "passed": true,
+      "duration_s": 12.496,
+      "problems": []
+    },
+    {
+      "pack": "02",
+      "pdf": "supplier-pack-02.pdf",
+      "expected": {
+        "supplier": "Jamuna Trims",
+        "decision": "Approve",
+        "rule_ids": []
+      },
+      "actual": {
+        "supplier": "Jamuna Trims and Accessories",
+        "decision": "Needs a person to check",
+        "rule_ids": [
+          "N2"
+        ],
+        "status": "completed",
+        "attempts": 1,
+        "match_ok": true,
+        "reason_codes": [
+          "N2"
+        ],
+        "error": null
+      },
+      "outcome": "accuracy",
+      "passed": false,
+      "duration_s": 12.052,
+      "problems": [
+        "decision: expected 'Approve', got 'Needs a person to check'",
+        "extra rule(s): N2"
+      ]
+    },
+    {
+      "pack": "03",
+      "pdf": "supplier-pack-03.pdf",
+      "expected": {
+        "supplier": "Karnaphuli Yarn",
+        "decision": "Reject",
+        "rule_ids": [
+          "R1"
+        ]
+      },
+      "actual": {
+        "supplier": "Karnaphuli Yarn Traders",
+        "decision": "Reject",
+        "rule_ids": [
+          "R1"
+        ],
+        "status": "completed",
+        "attempts": 1,
+        "match_ok": true,
+        "reason_codes": [
+          "R1"
+        ],
+        "error": null
+      },
+      "outcome": "pass",
+      "passed": true,
+      "duration_s": 6.088,
+      "problems": []
+    },
+    {
+      "pack": "04",
+      "pdf": "supplier-pack-04.pdf",
+      "expected": {
+        "supplier": "Surma Packaging",
+        "decision": "Needs a person to check",
+        "rule_ids": [
+          "H1"
+        ]
+      },
+      "actual": {
+        "supplier": "Surma Packaging Industries",
+        "decision": "Needs a person to check",
+        "rule_ids": [
+          "H1"
+        ],
+        "status": "completed",
+        "attempts": 1,
+        "match_ok": true,
+        "reason_codes": [
+          "H1"
+        ],
+        "error": null
+      },
+      "outcome": "pass",
+      "passed": true,
+      "duration_s": 11.197,
+      "problems": []
+    },
+    {
+      "pack": "05",
+      "pdf": "supplier-pack-05.pdf",
+      "expected": {
+        "supplier": "Meghna Carton",
+        "decision": "Reject",
+        "rule_ids": [
+          "R2"
+        ]
+      },
+      "actual": {
+        "supplier": "Meghna Carton Works",
+        "decision": "Reject",
+        "rule_ids": [
+          "R2"
+        ],
+        "status": "completed",
+        "attempts": 1,
+        "match_ok": true,
+        "reason_codes": [
+          "R2"
+        ],
+        "error": null
+      },
+      "outcome": "pass",
+      "passed": true,
+      "duration_s": 3.87,
+      "problems": []
+    },
+    {
+      "pack": "06",
+      "pdf": "supplier-pack-06.pdf",
+      "expected": {
+        "supplier": "Teesta Fabrics",
+        "decision": "Reject",
+        "rule_ids": [
+          "R3"
+        ]
+      },
+      "actual": {
+        "supplier": "Teesta Fabrics Ltd",
+        "decision": "Reject",
+        "rule_ids": [
+          "R3"
+        ],
+        "status": "completed",
+        "attempts": 1,
+        "match_ok": true,
+        "reason_codes": [
+          "R3"
+        ],
+        "error": null
+      },
+      "outcome": "pass",
+      "passed": true,
+      "duration_s": 9.928,
+      "problems": []
+    },
+    {
+      "pack": "07",
+      "pdf": "supplier-pack-07.pdf",
+      "expected": {
+        "supplier": "Rupsha Zipper",
+        "decision": "Needs a person to check",
+        "rule_ids": [
+          "H2"
+        ]
+      },
+      "actual": {
+        "supplier": "Rupsha Zipper Factory",
+        "decision": "Needs a person to check",
+        "rule_ids": [
+          "H2"
+        ],
+        "status": "completed",
+        "attempts": 1,
+        "match_ok": true,
+        "reason_codes": [
+          "H2"
+        ],
+        "error": null
+      },
+      "outcome": "pass",
+      "passed": true,
+      "duration_s": 10.896,
+      "problems": []
+    },
+    {
+      "pack": "08",
+      "pdf": "supplier-pack-08.pdf",
+      "expected": {
+        "supplier": "Bhairab Thread",
+        "decision": "Reject",
+        "rule_ids": [
+          "N2",
+          "R4"
+        ]
+      },
+      "actual": {
+        "supplier": "Bhairab Thread and Co",
+        "decision": "Reject",
+        "rule_ids": [
+          "N2",
+          "R4"
+        ],
+        "status": "completed",
+        "attempts": 1,
+        "match_ok": true,
+        "reason_codes": [
+          "R4",
+          "N2"
+        ],
+        "error": null
+      },
+      "outcome": "pass",
+      "passed": true,
+      "duration_s": 11.357,
+      "problems": []
+    },
+    {
+      "pack": "09",
+      "pdf": "supplier-pack-09.pdf",
+      "expected": {
+        "supplier": "Dhaleshwari Poly",
+        "decision": "Needs a person to check",
+        "rule_ids": [
+          "H3",
+          "H6"
+        ]
+      },
+      "actual": {
+        "supplier": "Dhaleshwari Poly Pack",
+        "decision": "Needs a person to check",
+        "rule_ids": [
+          "H3",
+          "H6"
+        ],
+        "status": "completed",
+        "attempts": 1,
+        "match_ok": true,
+        "reason_codes": [
+          "H3",
+          "H6"
+        ],
+        "error": null
+      },
+      "outcome": "pass",
+      "passed": true,
+      "duration_s": 9.237,
+      "problems": []
+    },
+    {
+      "pack": "10",
+      "pdf": "supplier-pack-10.pdf",
+      "expected": {
+        "supplier": "Kushiyara Box",
+        "decision": "Reject",
+        "rule_ids": [
+          "H5",
+          "R5"
+        ]
+      },
+      "actual": {
+        "supplier": "Kushiyara Box Industries",
+        "decision": "Reject",
+        "rule_ids": [
+          "H5",
+          "R5"
+        ],
+        "status": "completed",
+        "attempts": 1,
+        "match_ok": true,
+        "reason_codes": [
+          "R5",
+          "H5"
+        ],
+        "error": null
+      },
+      "outcome": "pass",
+      "passed": true,
+      "duration_s": 3.595,
+      "problems": []
+    }
+  ]
+}
