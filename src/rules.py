@@ -346,7 +346,11 @@ def check_n2(
             "The late-delivery penalty basis is not stated; it must be the "
             f"{config.PENALTY_BASIS}.",
         )
-    if basis.lower() != config.PENALTY_BASIS.strip().lower():
+    normalised = basis.lower()
+    head, separator, tail = normalised.partition(" ")
+    if head == "the" and separator:
+        normalised = tail  # remove one leading whole word "the" only
+    if normalised != config.PENALTY_BASIS.strip().lower():
         return Finding(
             "N2",
             "review",

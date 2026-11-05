@@ -2,6 +2,7 @@
 
 Written BEFORE src/rules.py. Do not edit these tests to make the code pass.
 """
+import dataclasses
 import json
 from decimal import Decimal as D
 from pathlib import Path
@@ -225,13 +226,27 @@ def test_n1_penalty_rate(pct, period, expected):
     [
         ("0.5", "order value", None),
         ("0.5", "Order Value", None),
+        ("0.5", "the order value", None),
+        ("0.5", "The Order Value", None),
+        ("0.5", "  the   order   value  ", None),
         ("0.5", None, "N2"),        # pack 08
+        ("0.5", "", "N2"),
         ("0.5", "total price", "N2"),
+        ("0.5", "the invoice value", "N2"),
+        ("0.5", "the order value excluding VAT", "N2"),
+        ("0.5", "the total order value", "N2"),
+        ("0.5", "theorder value", "N2"),   # no space: not a whole word
+        ("0.5", "then order value", "N2"),  # "then" is not "the"
         (None, None, None),
     ],
 )
 def test_n2_penalty_basis(pct, basis, expected):
     assert rid(check_n2(dec(pct), basis)) == expected
+
+
+def test_pack_02_accepts_the_order_value_through_evaluate():
+    inputs = dataclasses.replace(PACKS["02"], penalty_basis="the order value")
+    assert "N2" not in [finding.rule_id for finding in evaluate(inputs)]
 
 
 # ---- M: other required fields ----------------------------------------------------
