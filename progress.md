@@ -32,7 +32,7 @@ Phase 3 — Core building (foundation, rule engine, PDF reader, Gate 1, Gate 2, 
 - [x] F008 cleanup (2026-11-05), tests first (2 red in `tests/test_compare.py`, then green): the CSV loader itself leaked the full folder path and the raw OS error text (`[Errno ...]`), and the result layer was only hiding it by matching the start of the message. `src/compare.py` now names the file without its folder and shows only the exception type for OS read failures; the result-layer redaction stays as a second line of defence, and a new end-to-end test with the real loader guards against rewording. Documented in NOTE.md: rule M `not_stated` means "no usable value", `attempts` is "as far as known", `match` is `None` when the match never ran. Corrected the test counts in NOTE.md, progress.md and AI-LOG.md. Full suite: 622 passed.
 
 - [x] F009 Supplier decision reports (`src/report.py`): deterministic plain-text reports from one immutable `CheckResult`; optional supplier name carried from extraction; output under `reports/decisions/`; evidence sanitized as untrusted text with Bengali ZWNJ/ZWJ preserved only between Bengali characters; Reject-severity reasons stably sorted first; exact `Made by:` footer. Added report tests for rendering, sanitization, ordering, deterministic output, path safety and all ten gold packs. Full suite: 769 passed.
-- [x] F010 Streamlit interface (`app.py`, `src/ui_helpers.py`, `tests/test_ui_helpers.py`, `tests/test_app.py`): tests-first truncation regression added; UI text now follows the report's 240-character limit; `.streamlit/config.toml` sets `maxUploadSize = 10`. Full suite: **848 passed**. Headless startup health endpoint: `200 ok`. F010 is completed in `feature_list.json`. Remaining risk: a real browser run with provider credentials and an actual Download click are not automated; owner can smoke-test before demo.
+- [x] F010 Streamlit interface (`app.py`, `src/ui_helpers.py`, `tests/test_ui_helpers.py`, `tests/test_app.py`): tests-first truncation regression added; UI text now follows the report's 240-character limit; `.streamlit/config.toml` sets `maxUploadSize = 10`. Full suite: **848 passed**. Headless startup health endpoint: `200 ok`. F010 is completed in `feature_list.json`. Owner manually verified browser upload/check/report download, expected pack 07 quantity-mismatch review, expected pack 10 R5 rejection + H5 review, rejection of a 1.4 MB CSV, and invalid CSV schema rejection with zero model calls. Manual PDF-over-10-MB rejection and long-text truncation remain unverified.
 
 ## In Progress
 - None
@@ -65,7 +65,7 @@ Phase 3 — Core building (foundation, rule engine, PDF reader, Gate 1, Gate 2, 
 - Use a free model for plumbing tests. For now the first golden run uses the same model (decided 2026-11-05); a stronger model can be added later and both results reported.
 
 ## Open Questions
-- F010: a real browser smoke test with provider credentials and a manual Download click remain owner-side verification before demo/submission.
+- F010: manual browser tests for a PDF over 10 MB and visual confirmation of 240-character UI truncation remain optional follow-ups; upload/check/download, 1 MB CSV rejection, and invalid CSV schema handling were verified.
 
 ## Resolved Decisions (2026-11-05)
 - Golden test compares the EXACT list of rule IDs (R and H rules) against expected.json for every pack, not only the reject IDs. Pack 10 expects R5 + H5.

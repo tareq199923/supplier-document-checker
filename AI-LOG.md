@@ -106,3 +106,11 @@ caught them.
 - Added presentation-layer `_display_text()` in `src/ui_helpers.py`: clean text, cap it at F009's `MAX_TEXT_CHARS` (240), and append the existing `[shortened]` marker. Applied to supplier-derived display fields, including supplier name, reason messages/evidence, match details, and error text. F009 report logic remains unchanged.
 - Added `.streamlit/config.toml` with `[server] maxUploadSize = 10`, matching the 10 MB PDF cap. CSV helper cap remains 1 MB.
 - Full test suite after the change: **848 passed**. Headless Streamlit health endpoint: **200 ok**. Updated NOTE/progress to reflect the resolved configuration/text decisions and remaining manual browser/download smoke test. `feature_list.json` status was set to `completed` after the automated tests and startup check. No commit or push.
+
+### 2026-11-05 — F010 owner manual browser verification
+
+- Owner launched the Streamlit app in a browser and uploaded `supplier-pack-07.pdf` with `purchase-request.csv`. The app generated the expected H2 quantity-mismatch human-review result (16,500 quoted vs 20,000 requested; 17.50% difference vs 5% tolerance). The owner clicked Download and confirmed it worked.
+- Owner uploaded `supplier-pack-10.pdf` with the valid purchase request. The app returned the expected Reject decision for R5 (60-day delivery vs 45-day maximum) and H5 human-review finding because VAT was not shown separately.
+- Owner created a temporary 1.37 MB CSV and confirmed the app rejected it with: `The purchase request CSV is larger than 1 MB. Please choose a smaller file.` This verifies the helper-level CSV limit while remaining below Streamlit's 10 MB global upload cap.
+- Owner uploaded the unrelated `bank-faq.csv` and confirmed the app returned `PURCHASE_REQUEST_UNUSABLE`, listed the missing purchase-request columns, made no decision, and recorded zero model calls. Replacing it with the valid purchase request allowed pack 10 to process normally.
+- Manual browser checks now cover upload, check, report display, download, CSV size rejection, and invalid CSV schema handling. PDF-over-10-MB rejection and visual long-text truncation were not tested. No source code or feature status changed during this verification; this entry records the manual results.
