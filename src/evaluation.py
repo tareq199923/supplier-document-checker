@@ -567,10 +567,14 @@ def write_artifacts(
 
 
 # ---- opt-in guard -------------------------------------------------------------------
-def live_skip_reason() -> str | None:
-    """None when a live run is allowed; otherwise the reason to skip it."""
-    if (os.getenv("RUN_LIVE_EVALUATION") or "").strip() != "1":
-        return "live evaluation is opt-in: set RUN_LIVE_EVALUATION=1"
+def live_skip_reason(env_flag: str = "RUN_LIVE_EVALUATION") -> str | None:
+    """None when a live run is allowed; otherwise the reason to skip it.
+
+    ``env_flag`` lets F015 use its own opt-in flag without changing F011's
+    default behaviour.
+    """
+    if (os.getenv(env_flag) or "").strip() != "1":
+        return f"live evaluation is opt-in: set {env_flag}=1"
     provider = (os.getenv("LLM_PROVIDER") or "").strip().lower()
     if not provider:
         return "LLM_PROVIDER is not set"
