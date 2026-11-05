@@ -1,0 +1,584 @@
+{
+  "feature": "F015",
+  "kind": "synthetic",
+  "run_at": "2026-11-05T17:14:49+00:00",
+  "provider": "openai",
+  "model": "deepseek-v4.1-flash:free",
+  "prompt_version": "v1",
+  "git_commit": "2ff12347410f1394d82b3ab07d01c83981322dcf",
+  "git_dirty": false,
+  "expected_source": "tests/synthetic_cases.json",
+  "purchase_request": "samples/purchase-request.csv",
+  "totals": {
+    "total": 20,
+    "passed": 20,
+    "failed": 0
+  },
+  "outcomes": {
+    "pass": 20,
+    "accuracy": 0,
+    "extraction": 0,
+    "document": 0,
+    "infrastructure": 0,
+    "app_error": 0,
+    "harness": 0
+  },
+  "cases": [
+    {
+      "case": "S01",
+      "pdf": "S01.pdf",
+      "expected": {
+        "supplier": null,
+        "decision": "Approve",
+        "rule_ids": []
+      },
+      "actual": {
+        "supplier": "Padma Textile Mills Ltd",
+        "decision": "Approve",
+        "rule_ids": [],
+        "status": "completed",
+        "attempts": 1,
+        "match_ok": true,
+        "reason_codes": [],
+        "error": null
+      },
+      "outcome": "pass",
+      "passed": true,
+      "duration_s": 13.164,
+      "problems": []
+    },
+    {
+      "case": "S02",
+      "pdf": "S02.pdf",
+      "expected": {
+        "supplier": null,
+        "decision": "Needs a person to check",
+        "rule_ids": [
+          "H1"
+        ]
+      },
+      "actual": {
+        "supplier": "Padma Textile Mills Ltd",
+        "decision": "Needs a person to check",
+        "rule_ids": [
+          "H1"
+        ],
+        "status": "completed",
+        "attempts": 1,
+        "match_ok": true,
+        "reason_codes": [
+          "H1"
+        ],
+        "error": null
+      },
+      "outcome": "pass",
+      "passed": true,
+      "duration_s": 15.56,
+      "problems": []
+    },
+    {
+      "case": "S03",
+      "pdf": "S03.pdf",
+      "expected": {
+        "supplier": null,
+        "decision": "Reject",
+        "rule_ids": [
+          "R1"
+        ]
+      },
+      "actual": {
+        "supplier": "Padma Textile Mills Ltd",
+        "decision": "Reject",
+        "rule_ids": [
+          "R1"
+        ],
+        "status": "completed",
+        "attempts": 1,
+        "match_ok": true,
+        "reason_codes": [
+          "R1"
+        ],
+        "error": null
+      },
+      "outcome": "pass",
+      "passed": true,
+      "duration_s": 32.539,
+      "problems": []
+    },
+    {
+      "case": "S04",
+      "pdf": "S04.pdf",
+      "expected": {
+        "supplier": null,
+        "decision": "Reject",
+        "rule_ids": [
+          "R2"
+        ]
+      },
+      "actual": {
+        "supplier": "Padma Textile Mills Ltd",
+        "decision": "Reject",
+        "rule_ids": [
+          "R2"
+        ],
+        "status": "completed",
+        "attempts": 1,
+        "match_ok": true,
+        "reason_codes": [
+          "R2"
+        ],
+        "error": null
+      },
+      "outcome": "pass",
+      "passed": true,
+      "duration_s": 19.477,
+      "problems": []
+    },
+    {
+      "case": "S05",
+      "pdf": "S05.pdf",
+      "expected": {
+        "supplier": null,
+        "decision": "Needs a person to check",
+        "rule_ids": [
+          "H4"
+        ]
+      },
+      "actual": {
+        "supplier": "Padma Textile Mills Ltd",
+        "decision": "Needs a person to check",
+        "rule_ids": [
+          "H4"
+        ],
+        "status": "completed",
+        "attempts": 1,
+        "match_ok": true,
+        "reason_codes": [
+          "H4"
+        ],
+        "error": null
+      },
+      "outcome": "pass",
+      "passed": true,
+      "duration_s": 10.612,
+      "problems": []
+    },
+    {
+      "case": "S06",
+      "pdf": "S06.pdf",
+      "expected": {
+        "supplier": null,
+        "decision": "Reject",
+        "rule_ids": [
+          "R5"
+        ]
+      },
+      "actual": {
+        "supplier": "Padma Textile Mills Ltd",
+        "decision": "Reject",
+        "rule_ids": [
+          "R5"
+        ],
+        "status": "completed",
+        "attempts": 1,
+        "match_ok": true,
+        "reason_codes": [
+          "R5"
+        ],
+        "error": null
+      },
+      "outcome": "pass",
+      "passed": true,
+      "duration_s": 10.441,
+      "problems": []
+    },
+    {
+      "case": "S07",
+      "pdf": "S07.pdf",
+      "expected": {
+        "supplier": null,
+        "decision": "Approve",
+        "rule_ids": []
+      },
+      "actual": {
+        "supplier": "Padma Textile Mills Ltd",
+        "decision": "Approve",
+        "rule_ids": [],
+        "status": "completed",
+        "attempts": 1,
+        "match_ok": true,
+        "reason_codes": [],
+        "error": null
+      },
+      "outcome": "pass",
+      "passed": true,
+      "duration_s": 11.971,
+      "problems": []
+    },
+    {
+      "case": "S08",
+      "pdf": "S08.pdf",
+      "expected": {
+        "supplier": null,
+        "decision": "Needs a person to check",
+        "rule_ids": [
+          "H7"
+        ]
+      },
+      "actual": {
+        "supplier": "Padma Textile Mills Ltd",
+        "decision": "Needs a person to check",
+        "rule_ids": [
+          "H7"
+        ],
+        "status": "completed",
+        "attempts": 1,
+        "match_ok": true,
+        "reason_codes": [
+          "H7"
+        ],
+        "error": null
+      },
+      "outcome": "pass",
+      "passed": true,
+      "duration_s": 12.077,
+      "problems": []
+    },
+    {
+      "case": "S09",
+      "pdf": "S09.pdf",
+      "expected": {
+        "supplier": null,
+        "decision": "Needs a person to check",
+        "rule_ids": [
+          "H2"
+        ]
+      },
+      "actual": {
+        "supplier": "Padma Textile Mills Ltd",
+        "decision": "Needs a person to check",
+        "rule_ids": [
+          "H2"
+        ],
+        "status": "completed",
+        "attempts": 1,
+        "match_ok": true,
+        "reason_codes": [
+          "H2"
+        ],
+        "error": null
+      },
+      "outcome": "pass",
+      "passed": true,
+      "duration_s": 9.059,
+      "problems": []
+    },
+    {
+      "case": "S10",
+      "pdf": "S10.pdf",
+      "expected": {
+        "supplier": null,
+        "decision": "Needs a person to check",
+        "rule_ids": [
+          "H3"
+        ]
+      },
+      "actual": {
+        "supplier": "Padma Textile Mills Ltd",
+        "decision": "Needs a person to check",
+        "rule_ids": [
+          "H3"
+        ],
+        "status": "completed",
+        "attempts": 1,
+        "match_ok": true,
+        "reason_codes": [
+          "H3"
+        ],
+        "error": null
+      },
+      "outcome": "pass",
+      "passed": true,
+      "duration_s": 13.038,
+      "problems": []
+    },
+    {
+      "case": "S11",
+      "pdf": "S11.pdf",
+      "expected": {
+        "supplier": null,
+        "decision": "Needs a person to check",
+        "rule_ids": [
+          "H5"
+        ]
+      },
+      "actual": {
+        "supplier": "Padma Textile Mills Ltd",
+        "decision": "Needs a person to check",
+        "rule_ids": [
+          "H5"
+        ],
+        "status": "completed",
+        "attempts": 1,
+        "match_ok": true,
+        "reason_codes": [
+          "H5"
+        ],
+        "error": null
+      },
+      "outcome": "pass",
+      "passed": true,
+      "duration_s": 40.517,
+      "problems": []
+    },
+    {
+      "case": "S12",
+      "pdf": "S12.pdf",
+      "expected": {
+        "supplier": null,
+        "decision": "Needs a person to check",
+        "rule_ids": [
+          "H6"
+        ]
+      },
+      "actual": {
+        "supplier": "Padma Textile Mills Ltd",
+        "decision": "Needs a person to check",
+        "rule_ids": [
+          "H6"
+        ],
+        "status": "completed",
+        "attempts": 1,
+        "match_ok": true,
+        "reason_codes": [
+          "H6"
+        ],
+        "error": null
+      },
+      "outcome": "pass",
+      "passed": true,
+      "duration_s": 29.465,
+      "problems": []
+    },
+    {
+      "case": "S13",
+      "pdf": "S13.pdf",
+      "expected": {
+        "supplier": null,
+        "decision": "Reject",
+        "rule_ids": [
+          "R3"
+        ]
+      },
+      "actual": {
+        "supplier": "Padma Textile Mills Ltd",
+        "decision": "Reject",
+        "rule_ids": [
+          "R3"
+        ],
+        "status": "completed",
+        "attempts": 1,
+        "match_ok": true,
+        "reason_codes": [
+          "R3"
+        ],
+        "error": null
+      },
+      "outcome": "pass",
+      "passed": true,
+      "duration_s": 10.272,
+      "problems": []
+    },
+    {
+      "case": "S14",
+      "pdf": "S14.pdf",
+      "expected": {
+        "supplier": null,
+        "decision": "Needs a person to check",
+        "rule_ids": [
+          "N1"
+        ]
+      },
+      "actual": {
+        "supplier": "Padma Textile Mills Ltd",
+        "decision": "Needs a person to check",
+        "rule_ids": [
+          "N1"
+        ],
+        "status": "completed",
+        "attempts": 1,
+        "match_ok": true,
+        "reason_codes": [
+          "N1"
+        ],
+        "error": null
+      },
+      "outcome": "pass",
+      "passed": true,
+      "duration_s": 12.68,
+      "problems": []
+    },
+    {
+      "case": "S15",
+      "pdf": "S15.pdf",
+      "expected": {
+        "supplier": null,
+        "decision": "Needs a person to check",
+        "rule_ids": [
+          "N2"
+        ]
+      },
+      "actual": {
+        "supplier": "Padma Textile Mills Ltd",
+        "decision": "Needs a person to check",
+        "rule_ids": [
+          "N2"
+        ],
+        "status": "completed",
+        "attempts": 1,
+        "match_ok": true,
+        "reason_codes": [
+          "N2"
+        ],
+        "error": null
+      },
+      "outcome": "pass",
+      "passed": true,
+      "duration_s": 30.483,
+      "problems": []
+    },
+    {
+      "case": "S16",
+      "pdf": "S16.pdf",
+      "expected": {
+        "supplier": null,
+        "decision": "Approve",
+        "rule_ids": []
+      },
+      "actual": {
+        "supplier": "Padma Textile Mills Ltd",
+        "decision": "Approve",
+        "rule_ids": [],
+        "status": "completed",
+        "attempts": 1,
+        "match_ok": true,
+        "reason_codes": [],
+        "error": null
+      },
+      "outcome": "pass",
+      "passed": true,
+      "duration_s": 24.334,
+      "problems": []
+    },
+    {
+      "case": "S17",
+      "pdf": "S17.pdf",
+      "expected": {
+        "supplier": null,
+        "decision": "Reject",
+        "rule_ids": [
+          "R4"
+        ]
+      },
+      "actual": {
+        "supplier": "Padma Textile Mills Ltd",
+        "decision": "Reject",
+        "rule_ids": [
+          "R4"
+        ],
+        "status": "completed",
+        "attempts": 1,
+        "match_ok": true,
+        "reason_codes": [
+          "R4"
+        ],
+        "error": null
+      },
+      "outcome": "pass",
+      "passed": true,
+      "duration_s": 11.55,
+      "problems": []
+    },
+    {
+      "case": "S18",
+      "pdf": "S18.pdf",
+      "expected": {
+        "supplier": null,
+        "decision": "Approve",
+        "rule_ids": []
+      },
+      "actual": {
+        "supplier": "Padma Textile Mills Ltd",
+        "decision": "Approve",
+        "rule_ids": [],
+        "status": "completed",
+        "attempts": 1,
+        "match_ok": true,
+        "reason_codes": [],
+        "error": null
+      },
+      "outcome": "pass",
+      "passed": true,
+      "duration_s": 8.807,
+      "problems": []
+    },
+    {
+      "case": "S19",
+      "pdf": "S19.pdf",
+      "expected": {
+        "supplier": null,
+        "decision": "Reject",
+        "rule_ids": [
+          "R1"
+        ]
+      },
+      "actual": {
+        "supplier": "Padma Textile Mills Ltd",
+        "decision": "Reject",
+        "rule_ids": [
+          "R1"
+        ],
+        "status": "completed",
+        "attempts": 1,
+        "match_ok": true,
+        "reason_codes": [
+          "R1"
+        ],
+        "error": null
+      },
+      "outcome": "pass",
+      "passed": true,
+      "duration_s": 10.385,
+      "problems": []
+    },
+    {
+      "case": "S20",
+      "pdf": "S20.pdf",
+      "expected": {
+        "supplier": null,
+        "decision": "Needs a person to check",
+        "rule_ids": [
+          "M"
+        ]
+      },
+      "actual": {
+        "supplier": "Padma Textile Mills Ltd",
+        "decision": "Needs a person to check",
+        "rule_ids": [
+          "M"
+        ],
+        "status": "completed",
+        "attempts": 1,
+        "match_ok": true,
+        "reason_codes": [
+          "M"
+        ],
+        "error": null
+      },
+      "outcome": "pass",
+      "passed": true,
+      "duration_s": 11.994,
+      "problems": []
+    }
+  ]
+}

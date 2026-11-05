@@ -50,6 +50,23 @@ caught them.
     finished. The page now draws a disabled copy while the check runs and swaps in the normal
     button in the same slot afterwards. The test was not changed. Lesson: a status flag that
     disables a control must be cleared in the same script run, not only on the next one.
+12. **A test helper that returned an exception instead of raising it (F015).** The fake checker in
+    `run_with` returned a `RuntimeError` object. The runner correctly catches raised exceptions,
+    but because the helper did not raise, the test later failed with `AttributeError:
+    'RuntimeError' object has no attribute 'reasons'`. Caught by the focused pytest run. Fixed in
+    the test helper only (`if isinstance(value, Exception): raise value`); no assertion was
+    relaxed.
+13. **PDF lines wider than the page (F015).** The first synthetic renderer put the payment terms
+    and some clauses on long single lines. `write_pdf` refused any line wider than 500 pt, so 41
+    focused tests failed before extraction could run. Caught immediately by the focused suite.
+    Split the payment heading, advance sentence and balance sentence, and split the quality and
+    dispute sentences; the evidence sentences stayed whole. No assertion changed.
+14. **Weak VAT evidence in the synthetic oracle (F015).** The first oracle attached the table
+    header to `price_includes_vat = "false"` because Gate 2 exempts that field from the
+    value-in-evidence check. Pre-commit review showed the header does not show VAT; the evidence
+    now cites the VAT line, or `"Prices include VAT."` when the value is true. Caught by
+    self-review, not by a failing test. Lesson: a Gate 2 exemption is not permission to attach
+    unrelated evidence.
 
 ## Prompts that worked
 
@@ -130,3 +147,13 @@ caught them.
 - Did not change `FIELD_GUIDE`, prompt `v1`, `expected.json`, `config.PENALTY_BASIS` or any other rule. Full default suite after the fix: **901 passed, 1 skipped**.
 - Preserved the first-run evidence before rerunning: `reports/evaluation/f011-golden-run.json` and `.md` were copied to `f011-golden-run-9of10.json` and `.md`. Committed the code and tests as `a9f325a` first, then reran the live evaluation at that clean commit.
 - Second live run: **10/10** (`deepseek-v4.1-flash:free`, prompt `v1`, commit `a9f325a`, working tree clean, 2026-11-05T16:23:25+00:00). Pack 02 now passes and pack 08 still correctly reports N2 + R4. New evidence is in `reports/evaluation/f011-golden-run.json` and `.md`; the old 9/10 files remain as history. F015 was not started.
+
+### 2026-11-05 — F015 synthetic variants and repeat-run consistency
+
+- Wrote `tests/synthetic_cases.json`, `tests/test_synthetic.py` and `tests/test_consistency.py` first. The red checkpoint was the expected import failure for `src.synthetic` and `src.consistency`, not a failed assertion or a typo.
+- Added 20 deterministic cases S01–S20. Each case is one base spec plus explicit changes; money is derived with `Decimal` (`ROUND_HALF_UP`), each PDF is rendered as one fact per line, and the oracle extraction uses the same spec. Tests check every expected decision and rule-ID list against the real `evaluate()`/`decide()`, and push all 20 oracle payloads through Gate 2 and the real workflow with the mock provider.
+- Added the repeat-run harness: 3 repeats of the existing ten-pack evaluation, categories for stable-and-accurate, stable-but-inaccurate, flaky, and infrastructure-or-harness, plus hidden-flakiness reporting when a passing run used `attempts == 2`. Stability excludes attempts so a retry cannot disappear. No automatic retry was added, and the F011 artifacts are never written.
+- Added opt-in live tests with their own flag `RUN_LIVE_F015=1`; `RUN_LIVE_EVALUATION` stays F011-only. Default suite: **1040 passed, 3 skipped** (the three live tests). Focused F015 tests: 139 passed.
+- Live run at the clean implementation commit `2ff1234` with `deepseek-v4.1-flash:free` and prompt `v1`: **20/20** synthetic cases passed, then **30/30** observations across 3 repeats passed, with **10/10 packs stable-and-accurate**, **0 flaky**, **0 infrastructure/harness failures** and **0 hidden retries**. The command reported `2 passed, 1 skipped, 1040 deselected in 833.22s`; the skip is the F011 live test because `RUN_LIVE_EVALUATION` was unset.
+- Recorded the actual evidence in `reports/evaluation/f015-synthetic.json`/`.md` and `f015-repeat-run.json`/`.md`, then updated `progress.md`, `NOTE.md`, this log and `feature_list.json`. The F011 evidence files were not touched. The synthetic PDFs use a fixed template, so this result covers controlled wording, not real-world layouts, fonts or scans.
+

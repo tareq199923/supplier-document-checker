@@ -1,7 +1,7 @@
 # Project Progress
 
 ## Current Phase
-Phase 3 — Core building (F001–F014 complete; F010 Streamlit interface complete; F011 live golden evaluation complete at **10/10** after a separate tests-first N2 wording fix (first run was 9/10); F015 synthetic variants and repeat-run consistency is next)
+Phase 3 — Core building (F001–F015 complete; F010 Streamlit interface complete; F011 live golden evaluation complete at **10/10** after a separate tests-first N2 wording fix (first run was 9/10); F015 synthetic variants and repeat-run consistency complete at **20/20 synthetic** and **30/30 repeat-run observations**, with all 10 packs stable; F016 README is next)
 
 ## Completed
 - [x] Created project directory, Python 3.12 virtual environment and project folders
@@ -38,15 +38,16 @@ Phase 3 — Core building (F001–F014 complete; F010 Streamlit interface comple
 
 - [x] N2 wording fix (separate from F011, 2026-11-05, tests first): `check_n2` now removes exactly one leading whole word `"the"` after collapsing whitespace and lowercasing, then compares the remainder to `config.PENALTY_BASIS` (`"order value"`) by exact equality. `"the order value"` / `"The Order Value"` are accepted; `"theorder value"`, `"then order value"`, `"the invoice value"`, `"the order value excluding VAT"`, `"the total order value"`, `""` and `None` still trigger N2, and pack 08 still triggers N2. The finding message still shows the original basis text. No fuzzy/contains matching; the frozen prompt, `config.PENALTY_BASIS`, `expected.json` and every other rule are unchanged. 10 new tests (3 new accepted forms, 6 new negative forms and a pack 02 `evaluate()` regression; the focused N2 selection is 15 tests: 14 parametrized cases plus the regression), red then green. Full suite: **901 passed, 1 skipped**.
 
+- [x] F015 synthetic variants and repeat-run consistency (`src/synthetic.py`, `src/consistency.py`, `tests/synthetic_cases.json`, `tests/test_synthetic.py`, `tests/test_consistency.py`, opt-in `tests/test_live_f015.py`): 20 deterministic cases S01–S20 render plain-text PDFs, derive every money field with Decimal, and carry an oracle extraction whose exact quotes pass Gate 2. 139 offline tests; default suite **1040 passed, 3 skipped** (the 3 opt-in live tests). A live run on 2026-11-05 at commit `2ff1234` with `deepseek-v4.1-flash:free` and prompt `v1` passed **20/20** synthetic cases, then **30/30** pack observations across 3 repeats: **10/10 stable-and-accurate**, **0 flaky**, **0 infrastructure/harness failures**, and **0 hidden retries** (`attempts == 2`). Evidence: `reports/evaluation/f015-synthetic.json`/`.md` and `f015-repeat-run.json`/`.md`. The run took 13m53s; F011 artifacts were not touched.
+
 ## In Progress
 - None
 ## Next Up
-- [ ] F015 synthetic variants and repeat-run consistency
+- [ ] F016 README (NOTE and AI-LOG are current as of F015)
 
 ## Pending
-- [ ] Synthetic variants and repeat-run consistency (F015)
-- [ ] README, NOTE and AI-LOG written
-- [ ] Loom video recorded
+- [ ] README (F016)
+- [ ] Loom video recorded (F017)
 
 ## Important Engineering Decisions
 - Use a fixed workflow, not a free-running agent.
@@ -68,6 +69,9 @@ Phase 3 — Core building (F001–F014 complete; F010 Streamlit interface comple
 - Test features before marking them completed.
 - Use a free model for plumbing tests. For now the first golden run uses the same model (decided 2026-11-05); a stronger model can be added later and both results reported.
 - F011 evaluation pass requires `status == "completed"`, a successful purchase-request match, the exact expected decision and the exact sorted rule-ID list. A business "Needs a person to check" can pass because it is a completed result; a Gate 2 failure, document failure, LLM/network error or harness exception never passes. The live run is opt-in with `RUN_LIVE_EVALUATION=1`; the default suite never calls a model.
+- F015 synthetic cases are fixtures built from one spec, not a second pipeline: `tests/synthetic_cases.json` holds the base plus per-case changes, `src/synthetic.py` derives money with Decimal and renders one fact per line, and the oracle extraction uses the same spec so Gate 2 can prove each fixture is extractable. Tests check the expected decision and rule IDs against the real `evaluate()`/`decide()`.
+- F015 live runs use their own opt-in flag `RUN_LIVE_F015=1`; `RUN_LIVE_EVALUATION` remains F011-only. The default suite never calls a model.
+- F015 repeat stability means identical (status, outcome, decision, rule IDs) across runs; attempts are excluded so a passing retry is reported as hidden flakiness instead of disappearing. Infrastructure/harness failures have their own category and are never called flaky.
 
 ## Open Questions
 - F010: manual browser tests for a PDF over 10 MB and visual confirmation of 240-character UI truncation remain optional follow-ups; upload/check/download, 1 MB CSV rejection, and invalid CSV schema handling were verified.
@@ -82,3 +86,4 @@ Phase 3 — Core building (F001–F014 complete; F010 Streamlit interface comple
 
 ## Current Problems
 - Gate 2 evidence only has to appear somewhere in the PDF, so a quote that is just a bare number can pass; it does not prove the quote is about the right field. Accepted and documented in NOTE.md (sections 4 and 9). Do not describe Gate 2 as proving field meaning.
+- F015 synthetic PDFs come from a small fixed template, so they test extraction and consistency on controlled wording, not real-world layouts, fonts or scan quality. The repeat run covers the current ten real packs, model and prompt only; it is not evidence of general accuracy.

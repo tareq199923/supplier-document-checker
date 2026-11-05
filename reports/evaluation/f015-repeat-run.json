@@ -1,0 +1,706 @@
+{
+  "feature": "F015",
+  "kind": "repeat-run",
+  "run_at": "2026-11-05T17:20:47+00:00",
+  "provider": "openai",
+  "model": "deepseek-v4.1-flash:free",
+  "prompt_version": "v1",
+  "repeats": 3,
+  "git_commit": "2ff12347410f1394d82b3ab07d01c83981322dcf",
+  "git_dirty": false,
+  "expected_source": "expected.json",
+  "purchase_request": "samples/purchase-request.csv",
+  "stable_definition": "identical (status, outcome, decision, rule IDs) across all runs; attempts are reported separately",
+  "totals": {
+    "packs": 10,
+    "repeats": 3,
+    "observations": 30,
+    "pack_repeats_passed": 30,
+    "pack_repeats_failed": 0,
+    "stable_packs": 10,
+    "hidden_flakiness_packs": 0
+  },
+  "categories": {
+    "stable-and-accurate": 10,
+    "stable-but-inaccurate": 0,
+    "flaky": 0,
+    "infrastructure-or-harness": 0
+  },
+  "packs": [
+    {
+      "pack": "01",
+      "pdf": "supplier-pack-01.pdf",
+      "expected": {
+        "decision": "Approve",
+        "rule_ids": []
+      },
+      "runs": [
+        {
+          "run": 1,
+          "status": "completed",
+          "outcome": "pass",
+          "decision": "Approve",
+          "rule_ids": [],
+          "attempts": 1,
+          "error_code": null,
+          "error_stage": null
+        },
+        {
+          "run": 2,
+          "status": "completed",
+          "outcome": "pass",
+          "decision": "Approve",
+          "rule_ids": [],
+          "attempts": 1,
+          "error_code": null,
+          "error_stage": null
+        },
+        {
+          "run": 3,
+          "status": "completed",
+          "outcome": "pass",
+          "decision": "Approve",
+          "rule_ids": [],
+          "attempts": 1,
+          "error_code": null,
+          "error_stage": null
+        }
+      ],
+      "stable": true,
+      "category": "stable-and-accurate",
+      "hidden_flakiness": false,
+      "retry_runs": [],
+      "failure_runs": [],
+      "decision_distribution": [
+        {
+          "decision": "Approve",
+          "count": 3
+        }
+      ],
+      "rule_distribution": [
+        {
+          "rule_ids": [],
+          "count": 3
+        }
+      ],
+      "problems": []
+    },
+    {
+      "pack": "02",
+      "pdf": "supplier-pack-02.pdf",
+      "expected": {
+        "decision": "Approve",
+        "rule_ids": []
+      },
+      "runs": [
+        {
+          "run": 1,
+          "status": "completed",
+          "outcome": "pass",
+          "decision": "Approve",
+          "rule_ids": [],
+          "attempts": 1,
+          "error_code": null,
+          "error_stage": null
+        },
+        {
+          "run": 2,
+          "status": "completed",
+          "outcome": "pass",
+          "decision": "Approve",
+          "rule_ids": [],
+          "attempts": 1,
+          "error_code": null,
+          "error_stage": null
+        },
+        {
+          "run": 3,
+          "status": "completed",
+          "outcome": "pass",
+          "decision": "Approve",
+          "rule_ids": [],
+          "attempts": 1,
+          "error_code": null,
+          "error_stage": null
+        }
+      ],
+      "stable": true,
+      "category": "stable-and-accurate",
+      "hidden_flakiness": false,
+      "retry_runs": [],
+      "failure_runs": [],
+      "decision_distribution": [
+        {
+          "decision": "Approve",
+          "count": 3
+        }
+      ],
+      "rule_distribution": [
+        {
+          "rule_ids": [],
+          "count": 3
+        }
+      ],
+      "problems": []
+    },
+    {
+      "pack": "03",
+      "pdf": "supplier-pack-03.pdf",
+      "expected": {
+        "decision": "Reject",
+        "rule_ids": [
+          "R1"
+        ]
+      },
+      "runs": [
+        {
+          "run": 1,
+          "status": "completed",
+          "outcome": "pass",
+          "decision": "Reject",
+          "rule_ids": [
+            "R1"
+          ],
+          "attempts": 1,
+          "error_code": null,
+          "error_stage": null
+        },
+        {
+          "run": 2,
+          "status": "completed",
+          "outcome": "pass",
+          "decision": "Reject",
+          "rule_ids": [
+            "R1"
+          ],
+          "attempts": 1,
+          "error_code": null,
+          "error_stage": null
+        },
+        {
+          "run": 3,
+          "status": "completed",
+          "outcome": "pass",
+          "decision": "Reject",
+          "rule_ids": [
+            "R1"
+          ],
+          "attempts": 1,
+          "error_code": null,
+          "error_stage": null
+        }
+      ],
+      "stable": true,
+      "category": "stable-and-accurate",
+      "hidden_flakiness": false,
+      "retry_runs": [],
+      "failure_runs": [],
+      "decision_distribution": [
+        {
+          "decision": "Reject",
+          "count": 3
+        }
+      ],
+      "rule_distribution": [
+        {
+          "rule_ids": [
+            "R1"
+          ],
+          "count": 3
+        }
+      ],
+      "problems": []
+    },
+    {
+      "pack": "04",
+      "pdf": "supplier-pack-04.pdf",
+      "expected": {
+        "decision": "Needs a person to check",
+        "rule_ids": [
+          "H1"
+        ]
+      },
+      "runs": [
+        {
+          "run": 1,
+          "status": "completed",
+          "outcome": "pass",
+          "decision": "Needs a person to check",
+          "rule_ids": [
+            "H1"
+          ],
+          "attempts": 1,
+          "error_code": null,
+          "error_stage": null
+        },
+        {
+          "run": 2,
+          "status": "completed",
+          "outcome": "pass",
+          "decision": "Needs a person to check",
+          "rule_ids": [
+            "H1"
+          ],
+          "attempts": 1,
+          "error_code": null,
+          "error_stage": null
+        },
+        {
+          "run": 3,
+          "status": "completed",
+          "outcome": "pass",
+          "decision": "Needs a person to check",
+          "rule_ids": [
+            "H1"
+          ],
+          "attempts": 1,
+          "error_code": null,
+          "error_stage": null
+        }
+      ],
+      "stable": true,
+      "category": "stable-and-accurate",
+      "hidden_flakiness": false,
+      "retry_runs": [],
+      "failure_runs": [],
+      "decision_distribution": [
+        {
+          "decision": "Needs a person to check",
+          "count": 3
+        }
+      ],
+      "rule_distribution": [
+        {
+          "rule_ids": [
+            "H1"
+          ],
+          "count": 3
+        }
+      ],
+      "problems": []
+    },
+    {
+      "pack": "05",
+      "pdf": "supplier-pack-05.pdf",
+      "expected": {
+        "decision": "Reject",
+        "rule_ids": [
+          "R2"
+        ]
+      },
+      "runs": [
+        {
+          "run": 1,
+          "status": "completed",
+          "outcome": "pass",
+          "decision": "Reject",
+          "rule_ids": [
+            "R2"
+          ],
+          "attempts": 1,
+          "error_code": null,
+          "error_stage": null
+        },
+        {
+          "run": 2,
+          "status": "completed",
+          "outcome": "pass",
+          "decision": "Reject",
+          "rule_ids": [
+            "R2"
+          ],
+          "attempts": 1,
+          "error_code": null,
+          "error_stage": null
+        },
+        {
+          "run": 3,
+          "status": "completed",
+          "outcome": "pass",
+          "decision": "Reject",
+          "rule_ids": [
+            "R2"
+          ],
+          "attempts": 1,
+          "error_code": null,
+          "error_stage": null
+        }
+      ],
+      "stable": true,
+      "category": "stable-and-accurate",
+      "hidden_flakiness": false,
+      "retry_runs": [],
+      "failure_runs": [],
+      "decision_distribution": [
+        {
+          "decision": "Reject",
+          "count": 3
+        }
+      ],
+      "rule_distribution": [
+        {
+          "rule_ids": [
+            "R2"
+          ],
+          "count": 3
+        }
+      ],
+      "problems": []
+    },
+    {
+      "pack": "06",
+      "pdf": "supplier-pack-06.pdf",
+      "expected": {
+        "decision": "Reject",
+        "rule_ids": [
+          "R3"
+        ]
+      },
+      "runs": [
+        {
+          "run": 1,
+          "status": "completed",
+          "outcome": "pass",
+          "decision": "Reject",
+          "rule_ids": [
+            "R3"
+          ],
+          "attempts": 1,
+          "error_code": null,
+          "error_stage": null
+        },
+        {
+          "run": 2,
+          "status": "completed",
+          "outcome": "pass",
+          "decision": "Reject",
+          "rule_ids": [
+            "R3"
+          ],
+          "attempts": 1,
+          "error_code": null,
+          "error_stage": null
+        },
+        {
+          "run": 3,
+          "status": "completed",
+          "outcome": "pass",
+          "decision": "Reject",
+          "rule_ids": [
+            "R3"
+          ],
+          "attempts": 1,
+          "error_code": null,
+          "error_stage": null
+        }
+      ],
+      "stable": true,
+      "category": "stable-and-accurate",
+      "hidden_flakiness": false,
+      "retry_runs": [],
+      "failure_runs": [],
+      "decision_distribution": [
+        {
+          "decision": "Reject",
+          "count": 3
+        }
+      ],
+      "rule_distribution": [
+        {
+          "rule_ids": [
+            "R3"
+          ],
+          "count": 3
+        }
+      ],
+      "problems": []
+    },
+    {
+      "pack": "07",
+      "pdf": "supplier-pack-07.pdf",
+      "expected": {
+        "decision": "Needs a person to check",
+        "rule_ids": [
+          "H2"
+        ]
+      },
+      "runs": [
+        {
+          "run": 1,
+          "status": "completed",
+          "outcome": "pass",
+          "decision": "Needs a person to check",
+          "rule_ids": [
+            "H2"
+          ],
+          "attempts": 1,
+          "error_code": null,
+          "error_stage": null
+        },
+        {
+          "run": 2,
+          "status": "completed",
+          "outcome": "pass",
+          "decision": "Needs a person to check",
+          "rule_ids": [
+            "H2"
+          ],
+          "attempts": 1,
+          "error_code": null,
+          "error_stage": null
+        },
+        {
+          "run": 3,
+          "status": "completed",
+          "outcome": "pass",
+          "decision": "Needs a person to check",
+          "rule_ids": [
+            "H2"
+          ],
+          "attempts": 1,
+          "error_code": null,
+          "error_stage": null
+        }
+      ],
+      "stable": true,
+      "category": "stable-and-accurate",
+      "hidden_flakiness": false,
+      "retry_runs": [],
+      "failure_runs": [],
+      "decision_distribution": [
+        {
+          "decision": "Needs a person to check",
+          "count": 3
+        }
+      ],
+      "rule_distribution": [
+        {
+          "rule_ids": [
+            "H2"
+          ],
+          "count": 3
+        }
+      ],
+      "problems": []
+    },
+    {
+      "pack": "08",
+      "pdf": "supplier-pack-08.pdf",
+      "expected": {
+        "decision": "Reject",
+        "rule_ids": [
+          "N2",
+          "R4"
+        ]
+      },
+      "runs": [
+        {
+          "run": 1,
+          "status": "completed",
+          "outcome": "pass",
+          "decision": "Reject",
+          "rule_ids": [
+            "N2",
+            "R4"
+          ],
+          "attempts": 1,
+          "error_code": null,
+          "error_stage": null
+        },
+        {
+          "run": 2,
+          "status": "completed",
+          "outcome": "pass",
+          "decision": "Reject",
+          "rule_ids": [
+            "N2",
+            "R4"
+          ],
+          "attempts": 1,
+          "error_code": null,
+          "error_stage": null
+        },
+        {
+          "run": 3,
+          "status": "completed",
+          "outcome": "pass",
+          "decision": "Reject",
+          "rule_ids": [
+            "N2",
+            "R4"
+          ],
+          "attempts": 1,
+          "error_code": null,
+          "error_stage": null
+        }
+      ],
+      "stable": true,
+      "category": "stable-and-accurate",
+      "hidden_flakiness": false,
+      "retry_runs": [],
+      "failure_runs": [],
+      "decision_distribution": [
+        {
+          "decision": "Reject",
+          "count": 3
+        }
+      ],
+      "rule_distribution": [
+        {
+          "rule_ids": [
+            "N2",
+            "R4"
+          ],
+          "count": 3
+        }
+      ],
+      "problems": []
+    },
+    {
+      "pack": "09",
+      "pdf": "supplier-pack-09.pdf",
+      "expected": {
+        "decision": "Needs a person to check",
+        "rule_ids": [
+          "H3",
+          "H6"
+        ]
+      },
+      "runs": [
+        {
+          "run": 1,
+          "status": "completed",
+          "outcome": "pass",
+          "decision": "Needs a person to check",
+          "rule_ids": [
+            "H3",
+            "H6"
+          ],
+          "attempts": 1,
+          "error_code": null,
+          "error_stage": null
+        },
+        {
+          "run": 2,
+          "status": "completed",
+          "outcome": "pass",
+          "decision": "Needs a person to check",
+          "rule_ids": [
+            "H3",
+            "H6"
+          ],
+          "attempts": 1,
+          "error_code": null,
+          "error_stage": null
+        },
+        {
+          "run": 3,
+          "status": "completed",
+          "outcome": "pass",
+          "decision": "Needs a person to check",
+          "rule_ids": [
+            "H3",
+            "H6"
+          ],
+          "attempts": 1,
+          "error_code": null,
+          "error_stage": null
+        }
+      ],
+      "stable": true,
+      "category": "stable-and-accurate",
+      "hidden_flakiness": false,
+      "retry_runs": [],
+      "failure_runs": [],
+      "decision_distribution": [
+        {
+          "decision": "Needs a person to check",
+          "count": 3
+        }
+      ],
+      "rule_distribution": [
+        {
+          "rule_ids": [
+            "H3",
+            "H6"
+          ],
+          "count": 3
+        }
+      ],
+      "problems": []
+    },
+    {
+      "pack": "10",
+      "pdf": "supplier-pack-10.pdf",
+      "expected": {
+        "decision": "Reject",
+        "rule_ids": [
+          "H5",
+          "R5"
+        ]
+      },
+      "runs": [
+        {
+          "run": 1,
+          "status": "completed",
+          "outcome": "pass",
+          "decision": "Reject",
+          "rule_ids": [
+            "H5",
+            "R5"
+          ],
+          "attempts": 1,
+          "error_code": null,
+          "error_stage": null
+        },
+        {
+          "run": 2,
+          "status": "completed",
+          "outcome": "pass",
+          "decision": "Reject",
+          "rule_ids": [
+            "H5",
+            "R5"
+          ],
+          "attempts": 1,
+          "error_code": null,
+          "error_stage": null
+        },
+        {
+          "run": 3,
+          "status": "completed",
+          "outcome": "pass",
+          "decision": "Reject",
+          "rule_ids": [
+            "H5",
+            "R5"
+          ],
+          "attempts": 1,
+          "error_code": null,
+          "error_stage": null
+        }
+      ],
+      "stable": true,
+      "category": "stable-and-accurate",
+      "hidden_flakiness": false,
+      "retry_runs": [],
+      "failure_runs": [],
+      "decision_distribution": [
+        {
+          "decision": "Reject",
+          "count": 3
+        }
+      ],
+      "rule_distribution": [
+        {
+          "rule_ids": [
+            "H5",
+            "R5"
+          ],
+          "count": 3
+        }
+      ],
+      "problems": []
+    }
+  ]
+}
