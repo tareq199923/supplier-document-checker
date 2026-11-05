@@ -71,3 +71,11 @@ caught them.
 - Added 76 tests in `tests/test_result.py`, including all ten gold packs, error classification, evidence invariants, sanitisation and a regression test for raw CSV OS-error details. Focused tests: **76 passed**; full suite: **619 passed**.
 - F008 cleanup: a review found two more points. The CSV loader itself (not only the result layer) leaked the full folder path and raw `[Errno ...]` text, and the result layer hid it by matching the start of the message, which would break if the wording changed. Two tests written first failed against the loader; `src/compare.py` was then fixed at the source, and an end-to-end test with the real loader was added. The documented test counts were also off by one and were corrected. Full suite: **622 passed**.
 - Updated `progress.md`, `feature_list.json`, and this technical note. F009 reports and F010 UI remain out of scope.
+
+### 2026-11-05 — F009 supplier decision reports
+
+- Added `src/report.py`, a deterministic plain-text report renderer and writer that consumes one immutable `CheckResult`; it does not rerun rules, recalculate values, or ask the language model to make or explain a decision.
+- Added the optional supplier name to `CheckResult` using the existing extraction result, and writes reports under `reports/decisions/` without changing the raw supplier-pack files.
+- Report evidence is sanitized as untrusted text. Control/format characters are removed except Bengali ZWNJ/ZWJ when both adjacent characters are Bengali; reasons are stably ordered with Reject-severity findings first; the exact `Made by:` footer identifies the rules/model boundary.
+- Added report tests for decision/reason rendering, evidence sanitization, Bengali joiners, stable ordering, deterministic output, path safety and all ten gold packs. Full suite: **769 passed**.
+- Rendered and checked sample reports. F009 is complete; F010 and the remaining evaluation/documentation/demo features remain pending.

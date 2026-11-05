@@ -6,3 +6,4 @@ __pycache__/
 .coverage
 .DS_Store
 .streamlit/secrets.toml
+reports/decisions/

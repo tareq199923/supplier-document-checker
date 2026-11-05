@@ -31,15 +31,15 @@ Phase 3 — Core building (foundation, rule engine, PDF reader, Gate 1, Gate 2, 
 - [x] F008 Human review and error handling (`src/result.py`): added immutable `CheckResult`, `Reason`, `MatchSummary` and `ErrorInfo` types; `build_result` maps final workflow states without exposing raw provider errors; `check_supplier` prechecks the PDF and fully validates the CSV before any LLM call, then returns one result. Document problems map to human review; missing/invalid inputs, LLM failures, unusable CSV and unexpected exceptions map to clean errors with no decision. Exact evidence quotes come from `RULE_FIELDS`; rule M lists missing fields without quotes. Added 76 result-layer tests (77 after the cleanup below), including ten gold packs, sanitisation, attempts, stage mapping and invariants. A regression test also ensures raw OS error details from CSV reads are not exposed. Full suite after the first two F008 commits: 619 passed.
 - [x] F008 cleanup (2026-11-05), tests first (2 red in `tests/test_compare.py`, then green): the CSV loader itself leaked the full folder path and the raw OS error text (`[Errno ...]`), and the result layer was only hiding it by matching the start of the message. `src/compare.py` now names the file without its folder and shows only the exception type for OS read failures; the result-layer redaction stays as a second line of defence, and a new end-to-end test with the real loader guards against rewording. Documented in NOTE.md: rule M `not_stated` means "no usable value", `attempts` is "as far as known", `match` is `None` when the match never ran. Corrected the test counts in NOTE.md, progress.md and AI-LOG.md. Full suite: 622 passed.
 
+- [x] F009 Supplier decision reports (`src/report.py`): deterministic plain-text reports from one immutable `CheckResult`; optional supplier name carried from extraction; output under `reports/decisions/`; evidence sanitized as untrusted text with Bengali ZWNJ/ZWJ preserved only between Bengali characters; Reject-severity reasons stably sorted first; exact `Made by:` footer. Added report tests for rendering, sanitization, ordering, deterministic output, path safety and all ten gold packs. Full suite: 769 passed.
+
 ## In Progress
 - None
 
 ## Next Up
-- [ ] Supplier decision reports (F009)
+- [ ] Streamlit interface (app.py)
 
 ## Pending
-- [ ] Decision reports (src/report.py)
-- [ ] Streamlit interface (app.py)
 - [ ] Automated evaluation: golden test, synthetic variants, repeat runs
 - [ ] README, NOTE and AI-LOG written
 - [ ] Loom video recorded

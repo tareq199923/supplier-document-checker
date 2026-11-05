@@ -146,7 +146,7 @@ These examples are useful regression cases. Do not change a threshold or expecte
 - All 10 sample packs have gold extraction data.
 - Expected decisions and rule IDs are in `expected.json`.
 - The gold fixture guard checks for all ten approved pack keys.
-- The latest recorded full-suite baseline on 2026-11-05 after the F008 cleanup is **622 passed** (543 after F007, plus 77 in `tests/test_result.py` and 2 added to `tests/test_compare.py`).
+- The full-suite result after F009 is **769 passed** (622 before F009 plus 147 report tests in `tests/test_report.py`).
 - Run tests from the project root with:
 
 ```powershell
@@ -159,11 +159,11 @@ A passing mock/gold test suite verifies deterministic code paths and fixture han
 
 According to `progress.md` and `feature_list.json` at the time this note was written:
 
-**Completed:** project setup, PDF reading/Gate 1, LLM provider layer, config/schema/parsing, rule engine, Gate 2, extractor, purchase-request comparison (`src/compare.py`, F005), gold extraction coverage for all ten packs, the fixed LangGraph workflow (`src/graph.py`, F007), and normalized human-review/error handling (`src/result.py`, F008).
+**Completed:** project setup, PDF reading/Gate 1, LLM provider layer, config/schema/parsing, rule engine, Gate 2, extractor, purchase-request comparison (`src/compare.py`, F005), gold extraction coverage for all ten packs, the fixed LangGraph workflow (`src/graph.py`, F007), normalized human-review/error handling (`src/result.py`, F008), and deterministic supplier decision reports (`src/report.py`, F009).
 
-**Next:** F009 supplier decision reports, followed by F010 the Streamlit interface.
+**Next:** F010 the Streamlit interface.
 
-**Still pending:** decision reports, Streamlit interface, full automated evaluation, README, and Loom demo.
+**Still pending:** Streamlit interface, full automated evaluation, README, and Loom demo.
 
 The workflow tests in `tests/test_graph.py` stub the PDF reader, the LLM call and Gate 2, and feed the approved gold extractions through the real mapping, matching, rules and decision steps. They prove the wiring and all ten expected decisions and rule-ID lists. They are not a live run with real PDFs and a real model; that is the job of F011 and F015.
 
@@ -197,6 +197,8 @@ The workflow tests in `tests/test_graph.py` stub the PDF reader, the LLM call an
 | `src/compare.py` | Purchase-request CSV loader and strict item matcher (max price and requested quantity for the rules). |
 | `src/graph.py` | Fixed LangGraph workflow, Extraction-to-RuleInputs mapping, final decision with the failed-match rule; error states carry an additive stage. |
 | `src/result.py` | F008 normalized immutable `CheckResult` types, evidence/reason mapping, input prechecks and safe error handling. |
+| `src/report.py` | F009 deterministic plain-text report rendering and writing from one `CheckResult`, with evidence sanitization and stable reason ordering. |
+| `tests/test_report.py` | F009 report rendering, evidence sanitization, Bengali joiners, reason ordering, deterministic output, path safety and ten-pack golden-report tests. |
 | `tests/test_graph.py` | Workflow, mapping and failed-match tests (LLM and Gate 2 stubbed). |
 | `tests/test_result.py` | F008 result mapping, evidence, attempts, sanitisation, prechecks and ten-pack golden-result tests. |
 | `tests/gold_extractions.json` | Gold extraction fixtures for all ten sample packs. |

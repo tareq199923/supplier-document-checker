@@ -148,6 +148,17 @@ class CheckResult:
     match: MatchSummary | None = None  # None = the purchase request match did not run
     attempts: int = 0                 # model calls made, as far as known (0 if an unexpected error lost the state)
     error: ErrorInfo | None = None
+    # Added by F009. Exactly as extracted (cleaning happens only when a report is
+    # rendered). None when there is no usable name: Gate 2 failed, an error, or blank.
+    # It is display-only: nothing in the workflow ever reads it back.
+    supplier_name: str | None = None
+
+
+def _supplier_name(extraction: Extraction | None) -> str | None:
+    """The supplier name exactly as extracted, or None when absent or blank."""
+    wrapped = getattr(extraction, "supplier_name", None)
+    value = getattr(wrapped, "value", None)
+    return value if isinstance(value, str) and value.strip() else None
 
 
 # ---- building blocks ------------------------------------------------------------
@@ -265,6 +276,7 @@ def _completed(state: WorkflowState) -> CheckResult:
         notes=summary.notes,
         match=summary,
         attempts=_attempts(state),
+        supplier_name=_supplier_name(extraction),
     )
 
 
