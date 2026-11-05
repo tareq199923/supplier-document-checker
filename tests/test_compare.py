@@ -128,6 +128,28 @@ def test_loader_missing_file_is_a_clean_error(tmp_path):
         load_purchase_requests(tmp_path / "does-not-exist.csv")
 
 
+def test_loader_not_found_message_names_the_file_and_not_the_folder(tmp_path):
+    path = tmp_path / "private-folder" / "does-not-exist.csv"
+    with pytest.raises(PurchaseRequestError) as caught:
+        load_purchase_requests(path)
+    message = str(caught.value)
+    assert "does-not-exist.csv" in message
+    assert "private-folder" not in message
+    assert str(tmp_path) not in message
+
+
+def test_loader_read_failure_message_has_no_os_detail_and_no_path(tmp_path):
+    folder = tmp_path / "private-folder"
+    folder.mkdir()
+    with pytest.raises(PurchaseRequestError) as caught:
+        load_purchase_requests(folder)  # opening a folder fails with an OSError
+    message = str(caught.value)
+    assert "could not be read" in message
+    assert "Errno" not in message
+    assert "private-folder" not in message
+    assert str(tmp_path) not in message
+
+
 def test_loader_missing_column_is_a_clean_error(tmp_path):
     path = write_csv(
         tmp_path / "short.csv",

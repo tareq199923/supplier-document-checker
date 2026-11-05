@@ -146,7 +146,7 @@ class CheckResult:
     reasons: tuple[Reason, ...] = ()
     notes: tuple[str, ...] = ()       # remarks that are not reasons, e.g. "VAT included"
     match: MatchSummary | None = None  # None = the purchase request match did not run
-    attempts: int = 0                 # model calls made
+    attempts: int = 0                 # model calls made, as far as known (0 if an unexpected error lost the state)
     error: ErrorInfo | None = None
 
 
@@ -198,7 +198,9 @@ def _rule_reason(
     finding: Finding, extraction: Extraction | None, missing_fields: tuple[str, ...]
 ) -> Reason:
     if finding.rule_id == "M":
-        # M lists the missing fields (rule inputs); it never carries quotes.
+        # M lists the missing fields (rule inputs); it never carries quotes. A field
+        # that is written but unreadable is listed too: for M, "not_stated" means
+        # "no usable value", not only "absent from the document".
         evidence: tuple[tuple[str, str], ...] = ()
         not_stated = tuple(missing_fields)
     else:

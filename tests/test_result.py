@@ -811,3 +811,15 @@ def test_missing_csv_path_is_not_exposed(pdf_file, tmp_path):
     assert result.error.code == "PURCHASE_REQUEST_UNUSABLE"
     assert "Purchase request file was not found." in result.error.message
     assert str(private_path) not in repr(result)
+
+
+def test_a_csv_path_that_cannot_be_read_exposes_neither_path_nor_os_detail(pdf_file, tmp_path):
+    # Uses the REAL loader end to end: a folder given as the CSV path fails to open.
+    # This guards against a reworded loader message slipping past the redaction.
+    folder = tmp_path / "private-folder"
+    folder.mkdir()
+    result = check(pdf_file, folder)
+    assert result.status == "error"
+    assert result.error.code == "PURCHASE_REQUEST_UNUSABLE"
+    assert "Errno" not in repr(result)
+    assert "private-folder" not in repr(result)

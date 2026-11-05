@@ -149,8 +149,17 @@ def load_purchase_requests(path: str | Path) -> dict[Key, PurchaseRequestRow]:
                     )
                 table[(key[0], key[1])] = row
     except FileNotFoundError:
-        raise PurchaseRequestError(f"Purchase request file not found: {path}") from None
-    except (OSError, UnicodeDecodeError, csv.Error) as error:
+        # Name the file only. The folder is a private detail of the person's machine.
+        raise PurchaseRequestError(
+            f"Purchase request file not found: {path.name}"
+        ) from None
+    except OSError as error:
+        # An OS error text embeds the full path and an error number: show the type only.
+        raise PurchaseRequestError(
+            f"Purchase request file could not be read: {type(error).__name__}"
+        ) from None
+    except (UnicodeDecodeError, csv.Error) as error:
+        # These texts carry no path; the person needs them to fix the file.
         raise PurchaseRequestError(
             f"Purchase request file could not be read: {error}"
         ) from None
