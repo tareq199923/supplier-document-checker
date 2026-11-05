@@ -1,7 +1,7 @@
 # Project Progress
 
 ## Current Phase
-Phase 3 — Core building (F001–F014 complete; F010 Streamlit interface complete; F011 live golden evaluation complete at 9/10 with pack 02 recorded as an N2 wording mismatch; F015 synthetic variants and repeat-run consistency is next)
+Phase 3 — Core building (F001–F014 complete; F010 Streamlit interface complete; F011 live golden evaluation complete at **10/10** after a separate tests-first N2 wording fix (first run was 9/10); F015 synthetic variants and repeat-run consistency is next)
 
 ## Completed
 - [x] Created project directory, Python 3.12 virtual environment and project folders
@@ -34,7 +34,9 @@ Phase 3 — Core building (F001–F014 complete; F010 Streamlit interface comple
 - [x] F009 Supplier decision reports (`src/report.py`): deterministic plain-text reports from one immutable `CheckResult`; optional supplier name carried from extraction; output under `reports/decisions/`; evidence sanitized as untrusted text with Bengali ZWNJ/ZWJ preserved only between Bengali characters; Reject-severity reasons stably sorted first; exact `Made by:` footer. Added report tests for rendering, sanitization, ordering, deterministic output, path safety and all ten gold packs. Full suite: 769 passed.
 - [x] F010 Streamlit interface (`app.py`, `src/ui_helpers.py`, `tests/test_ui_helpers.py`, `tests/test_app.py`): tests-first truncation regression added; UI text now follows the report's 240-character limit; `.streamlit/config.toml` sets `maxUploadSize = 10`. Full suite: **848 passed**. Headless startup health endpoint: `200 ok`. F010 is completed in `feature_list.json`. Owner manually verified browser upload/check/report download, expected pack 07 quantity-mismatch review, expected pack 10 R5 rejection + H5 review, rejection of a 1.4 MB CSV, and invalid CSV schema rejection with zero model calls. Manual PDF-over-10-MB rejection and long-text truncation remain unverified.
 
-- [x] F011 Live golden evaluation across all ten sample packs (`src/evaluation.py`, `tests/test_evaluation.py`, `tests/test_live_evaluation.py`, opt-in `live` marker): 43 offline harness tests; default suite **891 passed, 1 skipped**. The live run on 2026-11-05 used `deepseek-v4.1-flash:free` through the configured OpenAI-compatible endpoint with prompt `v1` and passed **9/10**. Pack 02 extracted `penalty_basis = "the order value"`; N2 requires the exact basis `"order value"`, so the pack went to "Needs a person to check" instead of Approve. The rule, prompt and `expected.json` were not changed. Artifacts: `reports/evaluation/f011-golden-run.json` and `.md`.
+- [x] F011 Live golden evaluation across all ten sample packs (`src/evaluation.py`, `tests/test_evaluation.py`, `tests/test_live_evaluation.py`, opt-in `live` marker): 43 offline harness tests; after the N2 fix below the default suite is **901 passed, 1 skipped**. Run history on 2026-11-05 with `deepseek-v4.1-flash:free` through the configured OpenAI-compatible endpoint and prompt `v1`: **first run 9/10** (pack 02 returned `penalty_basis = "the order value"` and N2 required the exact basis `"order value"`, so the pack went to "Needs a person to check" instead of Approve; the prompt and `expected.json` were not changed), then **second run 10/10** after the separate N2 fix. Pack 08 still reports N2 + R4. The preserved first-run evidence is `reports/evaluation/f011-golden-run-9of10.json` and `.md`; the current evidence is `reports/evaluation/f011-golden-run.json` and `.md`.
+
+- [x] N2 wording fix (separate from F011, 2026-11-05, tests first): `check_n2` now removes exactly one leading whole word `"the"` after collapsing whitespace and lowercasing, then compares the remainder to `config.PENALTY_BASIS` (`"order value"`) by exact equality. `"the order value"` / `"The Order Value"` are accepted; `"theorder value"`, `"then order value"`, `"the invoice value"`, `"the order value excluding VAT"`, `"the total order value"`, `""` and `None` still trigger N2, and pack 08 still triggers N2. The finding message still shows the original basis text. No fuzzy/contains matching; the frozen prompt, `config.PENALTY_BASIS`, `expected.json` and every other rule are unchanged. 10 new tests (3 new accepted forms, 6 new negative forms and a pack 02 `evaluate()` regression; the focused N2 selection is 15 tests: 14 parametrized cases plus the regression), red then green. Full suite: **901 passed, 1 skipped**.
 
 ## In Progress
 - None
@@ -69,9 +71,9 @@ Phase 3 — Core building (F001–F014 complete; F010 Streamlit interface comple
 
 ## Open Questions
 - F010: manual browser tests for a PDF over 10 MB and visual confirmation of 240-character UI truncation remain optional follow-ups; upload/check/download, 1 MB CSV rejection, and invalid CSV schema handling were verified.
-- F011 pack 02: the live model returned `penalty_basis = "the order value"` while N2 compares the exact string `"order value"`, so pack 02 is a recorded 9/10 accuracy mismatch. The frozen prompt, N2 rule and `expected.json` were deliberately left unchanged. Decide separately whether N2 should tolerate a leading article; do not change it inside F011.
 
 ## Resolved Decisions (2026-11-05)
+- N2 accepts a penalty basis with one leading whole word "the" (for example `"the order value"`), because the company rule only requires the basis to be order value and the frozen prompt tells the model to copy the clause wording. This was fixed separately from F011, tests first; the prompt, `config.PENALTY_BASIS` and `expected.json` were not changed. Pack 08's missing basis still triggers N2.
 - Golden test compares the EXACT list of rule IDs (R and H rules) against expected.json for every pack, not only the reject IDs. Pack 10 expects R5 + H5.
 - Golden runs use the same model as the plumbing check (deepseek-v4.1-flash:free through OpenRouter) for now. No separate strong-model run for the moment.
 - R4 rejects the supplier if EITHER the TIN or the BIN is missing (pack 08 misses both). Documented in NOTE.md.

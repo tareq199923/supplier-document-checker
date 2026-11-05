@@ -1,21 +1,21 @@
 {
   "feature": "F011",
-  "run_at": "2026-11-05T12:39:51+00:00",
+  "run_at": "2026-11-05T16:23:25+00:00",
   "provider": "openai",
   "model": "deepseek-v4.1-flash:free",
   "prompt_version": "v1",
-  "git_commit": "8593502d72df0d5cfbc14ab6e39ce8ab0cc6f9c9",
+  "git_commit": "a9f325a85fc78a8023ef4e871846e5b6b1976704",
   "git_dirty": false,
   "expected_source": "expected.json",
   "purchase_request": "samples/purchase-request.csv",
   "totals": {
     "total": 10,
-    "passed": 9,
-    "failed": 1
+    "passed": 10,
+    "failed": 0
   },
   "outcomes": {
-    "pass": 9,
-    "accuracy": 1,
+    "pass": 10,
+    "accuracy": 0,
     "extraction": 0,
     "document": 0,
     "infrastructure": 0,
@@ -43,7 +43,7 @@
       },
       "outcome": "pass",
       "passed": true,
-      "duration_s": 12.496,
+      "duration_s": 13.897,
       "problems": []
     },
     {
@@ -56,25 +56,18 @@
       },
       "actual": {
         "supplier": "Jamuna Trims and Accessories",
-        "decision": "Needs a person to check",
-        "rule_ids": [
-          "N2"
-        ],
+        "decision": "Approve",
+        "rule_ids": [],
         "status": "completed",
         "attempts": 1,
         "match_ok": true,
-        "reason_codes": [
-          "N2"
-        ],
+        "reason_codes": [],
         "error": null
       },
-      "outcome": "accuracy",
-      "passed": false,
-      "duration_s": 12.052,
-      "problems": [
-        "decision: expected 'Approve', got 'Needs a person to check'",
-        "extra rule(s): N2"
-      ]
+      "outcome": "pass",
+      "passed": true,
+      "duration_s": 9.8,
+      "problems": []
     },
     {
       "pack": "03",
@@ -102,7 +95,7 @@
       },
       "outcome": "pass",
       "passed": true,
-      "duration_s": 6.088,
+      "duration_s": 15.163,
       "problems": []
     },
     {
@@ -131,7 +124,7 @@
       },
       "outcome": "pass",
       "passed": true,
-      "duration_s": 11.197,
+      "duration_s": 28.206,
       "problems": []
     },
     {
@@ -160,7 +153,7 @@
       },
       "outcome": "pass",
       "passed": true,
-      "duration_s": 3.87,
+      "duration_s": 17.397,
       "problems": []
     },
     {
@@ -189,7 +182,7 @@
       },
       "outcome": "pass",
       "passed": true,
-      "duration_s": 9.928,
+      "duration_s": 10.66,
       "problems": []
     },
     {
@@ -218,7 +211,7 @@
       },
       "outcome": "pass",
       "passed": true,
-      "duration_s": 10.896,
+      "duration_s": 37.807,
       "problems": []
     },
     {
@@ -250,7 +243,7 @@
       },
       "outcome": "pass",
       "passed": true,
-      "duration_s": 11.357,
+      "duration_s": 12.173,
       "problems": []
     },
     {
@@ -282,7 +275,7 @@
       },
       "outcome": "pass",
       "passed": true,
-      "duration_s": 9.237,
+      "duration_s": 10.907,
       "problems": []
     },
     {
@@ -314,7 +307,7 @@
       },
       "outcome": "pass",
       "passed": true,
-      "duration_s": 3.595,
+      "duration_s": 10.069,
       "problems": []
     }
   ]
