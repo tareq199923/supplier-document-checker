@@ -1,7 +1,7 @@
 # Project Progress
 
 ## Current Phase
-Phase 3 — Core building (F001–F015 complete; F010 Streamlit interface complete; F011 live golden evaluation complete at **10/10** after a separate tests-first N2 wording fix (first run was 9/10); F015 synthetic variants and repeat-run consistency complete at **20/20 synthetic** and **30/30 repeat-run observations**, with all 10 packs stable; F016 README is next)
+Phase 3 — Core building (F001–F016 complete; F010 Streamlit interface complete; F011 live golden evaluation complete at **10/10** after a separate tests-first N2 wording fix (first run was 9/10); F015 synthetic variants and repeat-run consistency complete at **20/20 synthetic** and **30/30 repeat-run observations**, with all 10 packs stable; F016 README complete)
 
 ## Completed
 - [x] Created project directory, Python 3.12 virtual environment and project folders
@@ -43,10 +43,10 @@ Phase 3 — Core building (F001–F015 complete; F010 Streamlit interface comple
 ## In Progress
 - None
 ## Next Up
-- [ ] F016 README (NOTE and AI-LOG are current as of F015)
+- [x] F016 README (updated with project overview, styled Mermaid workflow, setup, architecture, evaluation results and known limitations)
 
 ## Pending
-- [ ] README (F016)
+- [x] README (F016)
 - [ ] Loom video recorded (F017)
 
 ## Important Engineering Decisions
@@ -82,7 +82,7 @@ Phase 3 — Core building (F001–F015 complete; F010 Streamlit interface comple
 - Golden runs use the same model as the plumbing check (deepseek-v4.1-flash:free through OpenRouter) for now. No separate strong-model run for the moment.
 - R4 rejects the supplier if EITHER the TIN or the BIN is missing (pack 08 misses both). Documented in NOTE.md.
 - Gate 2 evidence validation stays as it is. Its limit is documented in NOTE.md (sections 4 and 9).
-- README is postponed until later (F016).
+- README was completed in F016; it documents the fixed workflow and current evaluation evidence.
 
 ## Current Problems
 - Gate 2 evidence only has to appear somewhere in the PDF, so a quote that is just a bare number can pass; it does not prove the quote is about the right field. Accepted and documented in NOTE.md (sections 4 and 9). Do not describe Gate 2 as proving field meaning.

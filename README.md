@@ -1,143 +1,268 @@
 # Supplier Document Checker
 
-Reads **one supplier quotation PDF**, compares it with a purchase request (CSV) and the company
-rules, and returns exactly one of three decisions:
+An evidence-first procurement assistant that checks **one supplier quotation PDF** against a purchase request and the company's procurement rules. It extracts the facts, verifies supporting quotations, applies deterministic Python rules, and returns one of three decisions:
 
-- **Approve**
-- **Reject**
-- **Needs a person to check**
+- **Approve** — no rejection or human-review finding applies.
+- **Reject** — at least one rejection rule applies.
+- **Needs a person to check** — information is unclear, missing, inconsistent, or requires human judgment.
 
-Every decision comes with the exact quotes from the PDF that support it. When the system is
-unsure, the answer is "Needs a person to check". It never guesses.
+Every decision includes the relevant evidence quotes from the supplier's PDF. When the system is unsure, it asks for human review instead of guessing.
 
-The sample company and rules are fictional (Aamar Garments Ltd, see `samples/company-rules.md`).
+> **Demo domain:** Aamar Garments Ltd and its procurement rules are fictional. See [samples/company-rules.md](samples/company-rules.md).
+
+---
 
 ## How it works
 
-This is a **fixed workflow, not a free-running agent**. Code decides every step. The language
-model only extracts values and exact quotes from the PDF text. It never calculates, never judges
-and never writes the explanation.
+The application follows a **fixed, auditable workflow**. LangGraph connects the steps; it does not make the workflow autonomous. The LLM is used only to extract structured facts and exact supporting quotes. Python validates, compares, calculates, applies the rules, and creates the final decision.
 
-```text
-PDF
-  -> read PDF
-  -> Gate 1: is there enough usable text?
-  -> LLM extraction (values + exact quotes)
-  -> Gate 2: schema check and every quote must appear verbatim in the PDF
-  -> compare with purchase-request.csv
-  -> rule engine (all rules run, all findings collected)
-  -> one decision
-  -> report built from templates and verified numbers
+```mermaid
+flowchart TD
+    A["1 · INPUT DOCUMENTS<br/>Supplier quotation PDF + purchase request CSV"]
+    B["2 · PDF READER · GATE 1<br/>Extract and normalise PDF text<br/>Check that usable text is available"]
+    C["3 · LLM EXTRACTION<br/>Extract supplier facts and exact evidence quotes"]
+    D["4 · VALIDATION · GATE 2<br/>Check schema, values and evidence against PDF text"]
+    E["5 · PURCHASE REQUEST MATCH<br/>Match PR number, item, description, unit, quantity and price"]
+    F["6 · PYTHON RULE ENGINE<br/>Run every applicable rule and collect all findings"]
+    G{"7 · DECISION ROUTING"}
+    H["APPROVE"]
+    I["REJECT"]
+    J["NEEDS A PERSON TO CHECK"]
+    K["8 · REPORT + STREAMLIT UI<br/>Show decision, reasons and evidence<br/>Download the decision report"]
+
+    A --> B --> C --> D
+    D -->|Pass| E
+    D -->|One retry at most; then human review if still invalid| J
+    E --> F --> G
+    G --> H
+    G --> I
+    G --> J
+    H --> K
+    I --> K
+    J --> K
+
+    classDef input fill:#10243a,stroke:#4b83b8,color:#eef6ff,stroke-width:1.5px
+    classDef ai fill:#211633,stroke:#9270c5,color:#f5edff,stroke-width:1.5px
+    classDef code fill:#102b25,stroke:#399879,color:#eafff5,stroke-width:1.5px
+    classDef decision fill:#35270d,stroke:#c59a3d,color:#fff6dc,stroke-width:1.5px
+    classDef output fill:#30200d,stroke:#c18b36,color:#fff3d7,stroke-width:1.5px
+    class A,B input
+    class C,D ai
+    class E,F code
+    class G,H,I,J decision
+    class K output
 ```
 
-Key design choices:
+### Workflow safeguards
 
-- **Python decides.** Money, percentages and thresholds use `Decimal`. All thresholds live in
-  `src/config.py`.
-- **Evidence is mandatory.** A non-empty extracted value needs a quote that appears in the PDF
-  text. A missing quote is an extraction failure, not a guess.
-- **One retry at most.** If Gate 2 fails, the model is asked once more with only the specific
-  failure messages. A second failure routes to "Needs a person to check".
-- **PDF text is untrusted data.** Instructions written inside a PDF are ignored.
-- **Clean failures.** Every model call has a timeout, and any provider error becomes a clean
-  error result.
-- **LangGraph is used only for wiring** the fixed steps in `src/graph.py`. Each step is a plain,
-  testable function.
+- **Python decides.** The LLM does not calculate prices, interpret policy, choose the decision, or write the report explanation.
+- **Evidence is required.** Every non-null extracted field must include an exact quote found in the normalised PDF text.
+- **One retry maximum.** If Gate 2 fails, extraction is retried once with the specific validation failures. A second failure goes to human review.
+- **All rules run.** The rule engine collects every applicable finding rather than stopping at the first one.
+- **Safe uncertainty.** Missing or unclear information is not silently filled in. The system routes uncertain cases to a person.
+- **Untrusted document text.** Instructions embedded in supplier PDFs are treated as data, not instructions.
+- **Deterministic reports.** Report text is generated from templates and verified values, not by the LLM.
+- **Decimal arithmetic.** Money, percentages and thresholds use Python's `Decimal`, not floating-point arithmetic.
 
-The rules (R1-R5 reject, H1-H7 review, plus extra findings N1, N2 and M) are listed in
-[`samples/company-rules.md`](samples/company-rules.md) and explained in [`NOTE.md`](NOTE.md).
+---
 
-## Setup
+## Procurement rules
 
-Requires Python 3.12 (developed and tested on 3.12.10, Windows).
+The sample policy belongs to the fictional **Aamar Garments Ltd**.
+
+| Outcome | Rule | Condition |
+|---|---|---|
+| Reject | R1 | Unit price is more than 3% above the purchase-request maximum |
+| Reject | R2 | Advance payment is more than 20% |
+| Reject | R3 | No late-delivery penalty clause |
+| Reject | R4 | Supplier TIN or BIN is missing |
+| Reject | R5 | Delivery is later than 45 days after the purchase order |
+| Human review | H1 | Unit price is above the maximum, but by no more than 3% |
+| Human review | H2 | Quoted quantity differs from requested quantity by more than 5% |
+| Human review | H3 | Payment terms are unclear or outside the allowed range |
+| Human review | H4 | Delivery is promised in 31–45 days |
+| Human review | H5 | VAT is not shown separately at 15% |
+| Human review | H6 | Quotation calculations do not add up |
+| Human review | H7 | Quotation validity is less than 30 days |
+
+The additional findings N1, N2 and M are documented in [NOTE.md](NOTE.md) and the implementation. The late-delivery penalty must be at least 0.5% of order value per week of delay. If you are unsure how a rule applies, the system should request human review.
+
+The thresholds are centralised in `src/config.py`; the rules are implemented as small Python functions in `src/rules.py`.
+
+---
+
+## Technology
+
+| Technology | Role |
+|---|---|
+| Python 3.12 | Application and business logic |
+| Streamlit | Web interface |
+| LangGraph | Connects the fixed workflow steps |
+| PyMuPDF | Reads and extracts text from PDFs |
+| Pydantic | Structures and validates extracted data |
+| LLM provider SDKs | Extract facts and evidence from document text |
+| pytest | Automated tests and evaluation harnesses |
+
+The LLM layer supports Anthropic, OpenAI, Gemini, OpenAI-compatible endpoints, and a mock provider for tests. OpenRouter has been used for the recorded live evaluations.
+
+---
+
+## Getting started
+
+### Requirements
+
+- Python **3.12**
+- Windows is the development and test environment used for this project.
+- An API key for the LLM provider you choose.
+
+### 1. Create and activate a virtual environment
+
+**PowerShell:**
 
 ```powershell
 python -m venv .venv
-.venv\Scripts\python.exe -m pip install -r requirements.txt
+.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+```
+
+If PowerShell blocks activation, you can use the environment's Python executable directly in the commands below without activating it.
+
+### 2. Configure the provider
+
+```powershell
 copy .env.example .env
 ```
 
-Then edit `.env` and choose a provider. The code reads these variables:
+Open `.env` and set the provider and model:
 
-| Variable | Meaning |
+| Variable | Purpose |
 |---|---|
-| `LLM_PROVIDER` | `anthropic`, `openai` or `gemini` (`mock` is for tests only) |
-| `LLM_MODEL` | Model name for the chosen provider (required) |
-| `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` / `GEMINI_API_KEY` | Key for the chosen provider |
-| `OPENAI_BASE_URL` | Optional. Lets the `openai` provider use any OpenAI-compatible endpoint |
-| `LLM_TIMEOUT_SECONDS` | Optional. Default 60 |
+| `LLM_PROVIDER` | `anthropic`, `openai`, or `gemini` |
+| `LLM_MODEL` | Model name for the selected provider |
+| `ANTHROPIC_API_KEY` | Anthropic API key, when using Anthropic |
+| `OPENAI_API_KEY` | OpenAI or compatible-provider key |
+| `GEMINI_API_KEY` | Gemini API key, when using Gemini |
+| `OPENAI_BASE_URL` | Optional base URL for an OpenAI-compatible endpoint |
+| `LLM_TIMEOUT_SECONDS` | Optional request timeout; defaults to 60 seconds |
 
-Never commit `.env`. It is listed in `.gitignore`.
+The `mock` provider is intended for tests, not normal app use. **Never commit your `.env` file or API keys.**
 
-## Run the app
+### 3. Start the application
 
 ```powershell
-.venv\Scripts\python.exe -m streamlit run app.py
+python -m streamlit run app.py
 ```
 
-Upload a supplier PDF (for example `samples/supplier-pack-03.pdf`) and
-`samples/purchase-request.csv`, then press **Check quotation**. The page shows the decision, the
-reasons with their evidence quotes, the purchase-request match and the number of model calls. You
-can download the decision report as a `.txt` file.
+Open the local URL printed by Streamlit. Upload a supplier quotation PDF and the purchase-request CSV, then select **Check quotation**.
 
-The app calls a real model, so a working provider and key in `.env` are required. Limits: PDF up
-to 10 MB, CSV up to 1 MB.
+The page displays the decision, reasons and supporting evidence, purchase-request match information, and model-call count. A plain-text decision report can be downloaded.
+
+**Upload limits:** supplier PDF up to 10 MB; purchase-request CSV up to 1 MB.
+
+---
 
 ## Run the tests
 
-```powershell
-.venv\Scripts\python.exe -m pytest -q
-```
-
-The default suite never calls a model (it uses the `mock` provider and fixtures), so it needs no
-API key. The live evaluations are opt-in and are skipped by default.
-
-## Evaluation results
-
-All live results below used `deepseek-v4.1-flash:free` through an OpenAI-compatible endpoint with
-prompt `v1`, on 2026-11-05. Evidence files are in `reports/evaluation/`.
-
-| Evaluation | Result |
-|---|---|
-| Ten sample packs (F011), first run | **9/10**. Pack 02 returned `"the order value"` where rule N2 required exactly `"order value"`, so it went to human review instead of Approve. |
-| Ten sample packs (F011), after a separate tests-first N2 fix | **10/10** |
-| 20 synthetic variants S01-S20 (F015) | **20/20** |
-| Repeat run, 10 packs x 3 repeats (F015) | **30/30**, all 10 packs stable, 0 flaky, 0 infrastructure failures, 0 hidden retries |
-
-The first 9/10 run is kept as history (`f011-golden-run-9of10.json` and `.md`). The fix changed
-only the N2 wording check. The prompt, `expected.json` and every other rule were not changed.
-
-To rerun the live evaluations (they call the real model and the F015 run took about 14 minutes):
+Run the default offline test suite:
 
 ```powershell
-$env:RUN_LIVE_EVALUATION="1"; .venv\Scripts\python.exe -m pytest -m live -q -s   # F011, ten packs
-$env:RUN_LIVE_F015="1"; .venv\Scripts\python.exe -m pytest -m live -q -s          # F015, synthetic + repeats
+python -m pytest -q
 ```
+
+The default suite uses the mock provider and fixtures. It does not call a live model and does not require an API key.
+
+### Live evaluations (opt-in)
+
+The live evaluations call the configured model and are skipped by default. Run them only when your provider configuration is ready.
+
+```powershell
+$env:RUN_LIVE_EVALUATION="1"
+python -m pytest -m live -q -s
+```
+
+The F011 command evaluates the ten sample packs.
+
+```powershell
+$env:RUN_LIVE_F015="1"
+python -m pytest -m live -q -s
+```
+
+The F015 command evaluates the 20 synthetic cases and the repeat-run consistency checks. The recorded F015 run took about 14 minutes.
+
+---
+
+## Recorded evaluation results
+
+The results below were recorded on **5 November 2026** using `deepseek-v4.1-flash:free` through an OpenAI-compatible endpoint with prompt version `v1`. They are evidence for the tested model, prompt and fixtures—not a guarantee of accuracy on every supplier document.
+
+| Evaluation | Recorded result |
+|---|---:|
+| Ten real sample packs, first F011 run | 9/10 |
+| Ten real sample packs, after the separate N2 wording fix | **10/10** |
+| Synthetic variants S01–S20 | **20/20** |
+| Ten packs × three repeat runs | **30/30 observations** |
+| Repeat stability | **10/10 packs stable; 0 flaky** |
+| Default offline test suite | **1,040 passed, 3 skipped** |
+
+The original 9/10 run is preserved as evaluation history. The N2 fix changed only the wording check; the prompt, expected results and other rules were not changed.
+
+Evaluation artifacts are stored in [reports/evaluation/](reports/evaluation/).
+
+---
 
 ## Known limitations
 
-- **Evidence is checked loosely.** Gate 2 proves a quote appears somewhere in the PDF and that the
-  value appears in its quote (with documented exceptions). It does not prove the quote is about
-  the right field. A bare number can pass.
-- **The results are narrow.** They cover one model, one frozen prompt and the current ten sample
-  packs. They are not evidence of general accuracy.
-- **Synthetic PDFs are easy.** They come from one fixed text template, so they test controlled
-  wording, not real supplier layouts, fonts or scan quality.
-- **Purchase-request matching is strict.** The description and unit must match the CSV (case and
-  extra spaces ignored, no fuzzy matching). A reworded item is sent to a person.
-- **Two manual UI checks are still open:** rejecting a PDF over 10 MB and visually confirming the
-  240-character text truncation.
+This is a controlled prototype, not yet a fully validated production procurement system.
 
-## Project layout
+1. **Evidence-to-field matching is limited.** Gate 2 checks that a quote appears in the PDF and that the extracted value appears in its evidence (with documented exceptions). It does not fully prove that the quote refers to the correct field; for example, a bare number can pass.
+2. **Evaluation coverage is narrow.** The recorded live results use one model, one frozen prompt version and the current ten sample packs. They do not establish general accuracy across suppliers, industries or document styles.
+3. **Synthetic documents are controlled.** The synthetic PDFs use a fixed text template. They test defined wording variations and repeatability, not arbitrary layouts, scanned pages or poor-quality documents.
+4. **Scanned PDFs may not work.** The current PDF reader extracts embedded text; it does not provide a complete OCR pipeline for image-only scans.
+5. **Purchase-request matching is intentionally strict.** PR number, item letter, description and unit must match after case and whitespace normalisation. There is no fuzzy matching; uncertain matches go to a person.
+6. **Some UI checks remain open.** Manual verification of rejection for a PDF larger than 10 MB and visual confirmation of the 240-character text truncation are still recommended.
 
-| Path | Purpose |
-|---|---|
-| `app.py` | Streamlit page (presentation only) |
-| `src/` | Workflow (`graph.py`), rules, gates (`validators.py`), model layer (`llm.py`), reports, evaluation harnesses |
-| `samples/` | Ten sample quotation PDFs, the purchase request and the company rules |
-| `tests/` | Default test suite and opt-in live tests |
-| `reports/evaluation/` | Recorded live evaluation evidence |
-| `expected.json` | Approved expected decisions and rule IDs for the ten packs |
-| `NOTE.md` | Technical foundation: architecture, rules, test and evaluation status, risks |
-| `AI-LOG.md` | Mistakes made by the AI assistant that were caught, and how |
-| `progress.md`, `feature_list.json` | Build progress |
+Do not use the current evaluation scores alone as the basis for unattended purchasing or supplier rejection. Human review and broader real-world validation are necessary before production use.
+
+---
+
+## Project structure
+
+```text
+supplier-document-checker/
+├── app.py                     # Streamlit interface
+├── src/
+│   ├── graph.py               # Fixed LangGraph workflow
+│   ├── pdf_reader.py          # PDF text extraction and Gate 1
+│   ├── extractor.py           # LLM extraction prompt and call
+│   ├── llm.py                 # Multi-provider LLM layer
+│   ├── schema.py               # Structured extraction schema
+│   ├── validators.py          # Gate 2 schema/evidence checks
+│   ├── parsing.py              # Safe parsing helpers
+│   ├── compare.py              # Purchase-request matching
+│   ├── rules.py                # Procurement rules
+│   ├── config.py               # Centralised thresholds
+│   ├── result.py               # Immutable result structures
+│   ├── report.py               # Deterministic decision reports
+│   ├── evaluation.py           # Golden evaluation harness
+│   ├── synthetic.py            # Synthetic test cases and PDFs
+│   └── consistency.py          # Repeat-run consistency checks
+├── samples/                    # Example PDFs, CSV and company rules
+├── tests/                      # Offline and opt-in live tests
+├── reports/
+│   ├── decisions/              # Generated supplier decision reports
+│   └── evaluation/             # Recorded evaluation evidence
+├── expected.json               # Expected decisions for sample packs
+├── requirements.txt
+├── NOTE.md                     # Detailed technical notes and design decisions
+├── AGENTS.md                   # Development constraints and project rules
+├── progress.md                 # Development progress
+└── AI-LOG.md                   # AI development mistakes and corrections
+```
+
+---
+
+## Design principle
+
+**The model extracts. The code verifies. The rules decide. A person handles uncertainty.**
+
+This separation is the core safety property of the Supplier Document Checker.
